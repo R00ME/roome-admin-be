@@ -16,13 +16,13 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
-	@Value("${spring.data.redis.host:localhost}") // 기본값 설정
+	@Value("${spring.data.redis.host}")
 	private String host;
 
-	@Value("${spring.data.redis.port:6379}")
+	@Value("${spring.data.redis.port}")
 	private int port;
 
-	@Value("${spring.data.redis.password:}") // 비밀번호가 없을 수도 있으므로 기본값 ""
+	@Value("${spring.data.redis.password}")
 	private String password;
 
 	@Bean

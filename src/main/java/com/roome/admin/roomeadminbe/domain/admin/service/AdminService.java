@@ -31,22 +31,27 @@ public class AdminService {
 
 	public void updateInfo(String adminEmail, UpdateAdminInfoRequest updateAdminInfoRequest) {
 		Admin admin = adminRepository.findByAdminEmail(adminEmail).orElseThrow();
-		if (passwordEncoder.matches(admin.getPassword(), updateAdminInfoRequest.getPassword())) {
-			admin.updateInfo(adminEmail, updateAdminInfoRequest);
+		if (!passwordEncoder.matches(updateAdminInfoRequest.getPassword(), admin.getPassword())) {
+			// exception 일괄 처리
+			throw new NoSuchElementException();
 		}
-		// exception 일괄 처리
-		throw new NoSuchElementException();
+		admin.updateInfo(adminEmail, updateAdminInfoRequest);
 	}
 
 	public void updatePassword(String adminEmail, UpdatePasswordRequest updatePasswordRequest) {
 		Admin admin = adminRepository.findByAdminEmail(adminEmail).orElseThrow();
+
+		// 비밀번호 불일치
+		if (!passwordEncoder.matches(updatePasswordRequest.getBeforePassword(), admin.getPassword())) {
+			// exception 일괄 처리 예정
+			throw new NoSuchElementException();
+		}
+
+		// 비밀번호, 비밀번호 확인 불일치  -> 프론트 처리시 삭제 예정
 		if (!updatePasswordRequest.getConfirmPassword().equals(updatePasswordRequest.getNewPassword())) {
 			throw new NoSuchElementException();
 		}
-		if (passwordEncoder.matches(admin.getPassword(), updatePasswordRequest.getBeforePassword())) {
-			admin.updatePassword(adminEmail, passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
-		}
-		// exception 일괄 처리 예정
-		throw new NoSuchElementException();
+
+		admin.updatePassword(adminEmail, passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
 	}
 }

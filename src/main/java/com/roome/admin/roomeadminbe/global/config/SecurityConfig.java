@@ -50,8 +50,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests(authorizeRequests ->
 						authorizeRequests
 								.requestMatchers("/api/admin/super/invite").permitAll()
-//								.requestMatchers("/roome/bo/admin/common/auth/password").permitAll()
-//								.requestMatchers("/roome/bo/admin/common/auth/login").permitAll()
+								.requestMatchers("/roome/bo/admin/common/auth/password").permitAll()
+								.requestMatchers("/roome/bo/admin/common/auth/login").permitAll()
 								.requestMatchers(PathRequest.toH2Console()).permitAll()
 								.requestMatchers("/favicon.ico").permitAll()
 								.anyRequest().authenticated()
