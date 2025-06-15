@@ -7,6 +7,9 @@ import com.roome.admin.roomeadminbe.domain.auth.dto.request.LoginRequest;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.SendTempPasswordRequest;
 import com.roome.admin.roomeadminbe.global.mail.MailService;
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
+import com.roome.admin.roomeadminbe.global.security.jwt.service.RefreshTokenService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.NoSuchElementException;
+
+import static com.roome.admin.roomeadminbe.global.security.util.CookieUtil.deleteRefreshTokenCookie;
 
 @Service
 @Transactional
@@ -28,6 +34,7 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final TokenProvider tokenProvider;
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
+	private final RefreshTokenService refreshTokenService;
 
 	public void sendTempPassword(SendTempPasswordRequest sendTempPasswordRequest) {
 		Admin admin = adminRepository.findByAdminEmail(sendTempPasswordRequest.getAdminEmail())
@@ -50,6 +57,7 @@ public class AuthService {
 
 		Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 		SecurityContextHolder.getContext().setAuthentication(authentication);
+
 		String accessToken = tokenProvider.createAccessToken(authentication);
 		String refreshToken = tokenProvider.createRefreshToken(authentication);
 
@@ -70,4 +78,20 @@ public class AuthService {
 		return sb.toString();
 	}
 
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
+		// 1. AccessToken 추출
+		String accessToken = tokenProvider.resolveToken(request);
+		if (accessToken == null || !tokenProvider.validateAccessToken(accessToken)) {
+			throw new NoSuchElementException("유효하지 않은 AccessToken입니다.");
+		}
+
+		// 2. 사용자 정보 추출
+		Long userId = tokenProvider.getUserIdFromAccessToken(accessToken);
+
+		// 3. Redis에서 RefreshToken 삭제
+		refreshTokenService.deleteRefreshToken(userId);
+
+		// 4. 쿠키에서 RefreshToken 제거 (Set-Cookie: Max-Age=0)
+		deleteRefreshTokenCookie(response);
+	}
 }

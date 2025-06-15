@@ -40,8 +40,10 @@ public class TokenService {
 
 		// refreshToken rotation
 		String newRefreshToken = tokenProvider.createRefreshToken(authentication);
+
 		refreshTokenService.deleteRefreshToken(userId);
 		refreshTokenService.saveRefreshToken(userId, newRefreshToken);
+
 		// CookieUtil
 		addRefreshTokenCookie(response, newRefreshToken);
 

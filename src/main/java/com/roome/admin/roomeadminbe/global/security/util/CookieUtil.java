@@ -32,4 +32,13 @@ public class CookieUtil {
 				.findFirst()
 				.orElse(null);
 	}
+
+	public static void deleteRefreshTokenCookie(HttpServletResponse response) {
+		Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, null);
+		cookie.setHttpOnly(true);
+		cookie.setSecure(true); // HTTPS 환경일 경우
+		cookie.setPath("/");
+		cookie.setMaxAge(0); // 즉시 만료
+		response.addCookie(cookie);
+	}
 }

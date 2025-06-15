@@ -5,6 +5,7 @@ import com.roome.admin.roomeadminbe.domain.auth.dto.request.LoginRequest;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.SendTempPasswordRequest;
 import com.roome.admin.roomeadminbe.domain.auth.service.AuthService;
 import com.roome.admin.roomeadminbe.global.security.jwt.filter.JwtFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ import java.time.Duration;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/roome/bo/admin/common/auth")
+@RequestMapping("/admin/auth/login")
 public class AuthController {
 
 	private final AuthService authService;
@@ -56,4 +57,9 @@ public class AuthController {
 		return new ResponseEntity<>(tokenResponseDto, httpHeaders, HttpStatus.OK);
 	}
 
+	@PostMapping("/logout")
+	public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+		authService.logout(request, response);
+		return ResponseEntity.noContent().build();
+	}
 }
