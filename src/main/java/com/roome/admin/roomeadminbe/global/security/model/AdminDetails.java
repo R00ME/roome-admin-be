@@ -1,44 +1,41 @@
 package com.roome.admin.roomeadminbe.global.security.model;
 
-import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
-import com.roome.admin.roomeadminbe.domain.admin.entity.AdminRole;
-import com.roome.admin.roomeadminbe.domain.admin.entity.Status;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
 
 public class AdminDetails implements UserDetails {
 
-	private final Admin admin;
+	private final Long adminId;
+	private final String email;
+	private final String password;
+	private final Collection<? extends GrantedAuthority> authorities;
 
-	public AdminDetails(Admin admin) {
-		this.admin = admin;
+	public AdminDetails(Long adminId, String email, String password, Collection<? extends GrantedAuthority> authorities) {
+		this.adminId = adminId;
+		this.email = email;
+		this.password = password;
+		this.authorities = authorities;
 	}
 
 	public Long getAdminId() {
-		return admin.getAdminId();
-	}
-
-	public AdminRole getAdminRole() {
-		return admin.getAdminRole();
-	}
-
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return List.of(new SimpleGrantedAuthority("ROLE_" + admin.getAdminRole().name()));
-	}
-
-	@Override
-	public String getPassword() {
-		return admin.getPassword();
+		return adminId;
 	}
 
 	@Override
 	public String getUsername() {
-		return admin.getAdminEmail(); // 이메일을 ID로 쓴다고 가정
+		return email;
+	}
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return authorities;
+	}
+
+	@Override
+	public String getPassword() {
+		return password;
 	}
 
 	@Override
@@ -48,7 +45,7 @@ public class AdminDetails implements UserDetails {
 
 	@Override
 	public boolean isAccountNonLocked() {
-		return admin.getStatus() != Status.DORMANT; // 예시
+		return true;
 	}
 
 	@Override
@@ -58,6 +55,6 @@ public class AdminDetails implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return Boolean.TRUE.equals(admin.isActivated());
+		return true;
 	}
 }

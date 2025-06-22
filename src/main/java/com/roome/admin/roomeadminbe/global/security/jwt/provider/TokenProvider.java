@@ -14,8 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -23,7 +21,6 @@ import javax.crypto.SecretKey;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,8 +40,7 @@ public class TokenProvider implements InitializingBean {
 			@Value("${jwt.access-token.secret}") String accessSecret,
 			@Value("${jwt.access-token.validity-in-seconds}") long accessValidity,
 			@Value("${jwt.refresh-token.secret}") String refreshSecret,
-			@Value("${jwt.refresh-token.validity-in-seconds}") long refreshValidity
-	) {
+			@Value("${jwt.refresh-token.validity-in-seconds}") long refreshValidity) {
 		this.accessSecret = accessSecret;
 		this.refreshSecret = refreshSecret;
 		this.accessTokenValidityInMillis = accessValidity * 1000;
@@ -61,18 +57,16 @@ public class TokenProvider implements InitializingBean {
 	public String createAccessToken(Authentication authentication) {
 		AdminDetails principal = (AdminDetails) authentication.getPrincipal();
 
-		String authorities = authentication.getAuthorities().stream()
+		String authorities = principal.getAuthorities().stream()
 				.map(GrantedAuthority::getAuthority)
 				.collect(Collectors.joining(","));
 
-		long now = System.currentTimeMillis();
-
 		return Jwts.builder()
-				.setSubject(principal.getAdminId().toString())
-				.claim("email", principal.getUsername())
+				.setSubject(principal.getUsername())
+				.claim("adminId", principal.getAdminId())
 				.claim("auth", authorities)
-				.setIssuedAt(new Date(now))
-				.setExpiration(new Date(now + accessTokenValidityInMillis))
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + accessTokenValidityInMillis))
 				.signWith(accessKey, SignatureAlgorithm.HS256)
 				.compact();
 	}
@@ -80,52 +74,55 @@ public class TokenProvider implements InitializingBean {
 	public String createRefreshToken(Authentication authentication) {
 		AdminDetails principal = (AdminDetails) authentication.getPrincipal();
 
-		Long userId = principal.getAdminId();
+		Long adminId = principal.getAdminId();
 		String email = principal.getUsername();
+
+		String authorities = principal.getAuthorities().stream()
+				.map(GrantedAuthority::getAuthority)
+				.collect(Collectors.joining(","));
 
 		long now = System.currentTimeMillis();
 
 		return Jwts.builder()
-				.setSubject(userId.toString())
-				.claim("email", email)
+				.setSubject(email)
+				.claim("adminId", adminId)
+				.claim("auth", authorities)
 				.setIssuedAt(new Date(now))
 				.setExpiration(new Date(now + refreshTokenValidityInMillis))
 				.signWith(refreshKey, SignatureAlgorithm.HS256)
 				.compact();
 	}
 
-	// 토큰으로 클레임을 만들고 이를 이용해 유저 객체를 만들어서 최종적으로 authentication 객체를 리턴
 	public Authentication getAuthenticationFromAccessToken(String token) {
-		Claims claims = Jwts.parserBuilder()
-				.setSigningKey(accessKey)
-				.build()
-				.parseClaimsJws(token)
-				.getBody();
+		Claims claims = getAccessTokenClaims(token);
+		return getAuthenticationFromClaims(claims);
+	}
+
+	public Authentication getAuthenticationFromClaims(Claims claims) {
+		Long adminId = Long.valueOf(claims.get("adminId").toString());
+		String email = claims.getSubject();
+		String authorityString = claims.get("auth", String.class);
+		System.out.println("🧾 authorityString from claims: " + authorityString);
 
 		Collection<? extends GrantedAuthority> authorities =
-				Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+				Arrays.stream(authorityString.split(","))
 						.map(SimpleGrantedAuthority::new)
-						.collect(Collectors.toList());
+						.toList();
 
-		User principal = new User(claims.getSubject(), "", authorities);
+		AdminDetails adminDetails = new AdminDetails(adminId, email, null, authorities);
 
-		return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+		return new UsernamePasswordAuthenticationToken(adminDetails, null, authorities);
 	}
 
-	public Authentication getAuthenticationFromUserId(Long userId) {
-		// 실제로는 DB 또는 UserDetailsService에서 조회
-		UserDetails userDetails = new User(userId.toString(), "", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
-		return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-	}
 
 	public Long getUserIdFromAccessToken(String accessToken) {
 		Claims claims = getAccessTokenClaims(accessToken);
-		return Long.valueOf(claims.getSubject()); // subject에 userId가 저장되어 있음
+		return Long.valueOf(claims.get("adminId").toString());
 	}
 
 	public Long getUserFromRefreshToken(String refreshToken) {
 		Claims claims = getRefreshTokenClaims(refreshToken);
-		return Long.valueOf(claims.getSubject());
+		return Long.valueOf(claims.get("adminId").toString());
 	}
 
 	public Claims getAccessTokenClaims(String token) {
@@ -142,6 +139,19 @@ public class TokenProvider implements InitializingBean {
 				.build()
 				.parseClaimsJws(token)
 				.getBody();
+	}
+
+	public long getRemainingValidity(String accessToken) {
+		Claims claims = Jwts.parserBuilder()
+				.setSigningKey(accessKey)  // 시크릿 키 사용
+				.build()
+				.parseClaimsJws(accessToken)
+				.getBody();
+
+		Date expiration = claims.getExpiration(); // 만료 시간
+		long now = System.currentTimeMillis();
+
+		return (expiration.getTime() - now) / 1000;
 	}
 
 	public String resolveToken(HttpServletRequest request) {

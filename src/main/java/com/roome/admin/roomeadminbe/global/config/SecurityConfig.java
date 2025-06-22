@@ -4,9 +4,11 @@ import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAccessDeniedH
 import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAuthenticationEntryPoint;
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,6 +26,8 @@ public class SecurityConfig {
 	private final TokenProvider tokenProvider;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+	@Qualifier("blacklistRedisTemplate")
+	private final RedisTemplate<String, Long> blacklistRedisTemplate;
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
@@ -32,7 +36,7 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-		JwtSecurityConfig jwtSecurityConfig = new JwtSecurityConfig(tokenProvider);
+		JwtSecurityConfig jwtSecurityConfig = new JwtSecurityConfig(tokenProvider, blacklistRedisTemplate);
 
 		httpSecurity
 				.csrf(csrf -> csrf.disable())
@@ -58,7 +62,7 @@ public class SecurityConfig {
 								.anyRequest().authenticated()
 				);
 
-		jwtSecurityConfig.configure(httpSecurity); // JwtSecurityConfig를 적용
+		jwtSecurityConfig.configure(httpSecurity);
 
 		return httpSecurity.build();
 	}

@@ -8,6 +8,7 @@ import com.roome.admin.roomeadminbe.domain.auth.dto.request.SendTempPasswordRequ
 import com.roome.admin.roomeadminbe.global.mail.MailService;
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
 import com.roome.admin.roomeadminbe.global.security.jwt.service.RefreshTokenService;
+import com.roome.admin.roomeadminbe.global.security.jwt.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -35,6 +36,7 @@ public class AuthService {
 	private final TokenProvider tokenProvider;
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 	private final RefreshTokenService refreshTokenService;
+	private final TokenService tokenService;
 
 	public void sendTempPassword(SendTempPasswordRequest sendTempPasswordRequest) {
 		Admin admin = adminRepository.findByAdminEmail(sendTempPasswordRequest.getAdminEmail())
@@ -74,10 +76,12 @@ public class AuthService {
 		// 2. 사용자 정보 추출
 		Long userId = tokenProvider.getUserIdFromAccessToken(accessToken);
 
-		// 3. Redis에서 RefreshToken 삭제
+		// 3. accessToken blackList 에 추가
+		tokenService.addAccessTokenToBlacklist(accessToken);
+		// 4. Redis에서 RefreshToken 삭제
 		refreshTokenService.deleteRefreshToken(userId);
 
-		// 4. 쿠키에서 RefreshToken 제거 (Set-Cookie: Max-Age=0)
+		// 5. 쿠키에서 RefreshToken 제거 (Set-Cookie: Max-Age=0)
 		deleteRefreshTokenCookie(response);
 	}
 

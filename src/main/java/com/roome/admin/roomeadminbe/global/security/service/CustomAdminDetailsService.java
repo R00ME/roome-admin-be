@@ -6,10 +6,16 @@ import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +33,13 @@ public class CustomAdminDetailsService implements UserDetailsService {
 
 	private AdminDetails createUser(Admin admin) {
 		if (admin.getActivationStatus() != ActivationStatus.ACTIVE) {
-			throw new RuntimeException(admin.getAdminEmail() + " -> 활성화되어 있지 않습니다.");
+			throw new DisabledException("비활성화된 관리자입니다.");
 		}
 
-		return new AdminDetails(admin);
+		Collection<? extends GrantedAuthority> authorities = List.of(
+				new SimpleGrantedAuthority("ROLE_" + admin.getAdminRole().name())
+		);
+
+		return new AdminDetails(admin.getAdminId(), admin.getAdminEmail(), admin.getPassword(), authorities);
 	}
 }
