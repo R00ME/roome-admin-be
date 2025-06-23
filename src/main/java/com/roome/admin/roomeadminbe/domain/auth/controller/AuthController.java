@@ -4,6 +4,7 @@ import com.roome.admin.roomeadminbe.domain.auth.dto.TokenResponseDto;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.LoginRequest;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.SendTempPasswordRequest;
 import com.roome.admin.roomeadminbe.domain.auth.service.AuthService;
+import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.global.security.jwt.filter.JwtFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 
+import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse.ofDataWithHttpStatus;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/auth")
@@ -29,9 +32,9 @@ public class AuthController {
 
     // 임시 password 발급 (첫 로그인)
     @PostMapping("/password")
-    public ResponseEntity<Void> sendTempPassword(@RequestBody SendTempPasswordRequest sendTempPasswordRequest) {
+    public ResponseEntity<CommonResponse<String>> sendTempPassword(@RequestBody SendTempPasswordRequest sendTempPasswordRequest) {
         authService.sendTempPassword(sendTempPasswordRequest);
-        return ResponseEntity.ok().build();
+        return ofDataWithHttpStatus("임시 비밀번호 발급 완료: 이메일 확인", HttpStatus.OK);
     }
 
     // 로그인
@@ -57,8 +60,8 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<CommonResponse<String>> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response);
-        return ResponseEntity.noContent().build();
+        return ofDataWithHttpStatus("로그아웃 완료", HttpStatus.NO_CONTENT);
     }
 }

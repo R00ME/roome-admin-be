@@ -4,14 +4,18 @@ import com.roome.admin.roomeadminbe.domain.admin.dto.request.UpdateAdminInfoRequ
 import com.roome.admin.roomeadminbe.domain.admin.dto.request.UpdatePasswordRequest;
 import com.roome.admin.roomeadminbe.domain.admin.dto.response.ReadAdminInfoResponse;
 import com.roome.admin.roomeadminbe.domain.admin.service.AdminService;
+import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse.ofDataWithHttpStatus;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,22 +26,20 @@ public class AdminController {
 	private final AdminService adminService;
 
 	@GetMapping
-	public ResponseEntity<ReadAdminInfoResponse> readInfo(@AuthenticationPrincipal AdminDetails adminDetails) {
+	public ResponseEntity<CommonResponse<ReadAdminInfoResponse>> readInfo(@AuthenticationPrincipal AdminDetails adminDetails) {
 		ReadAdminInfoResponse readAdminInfo = adminService.readInfo(adminDetails.getUsername());
-
-		log.info("Admin username: {}", adminDetails.getUsername());
-		return ResponseEntity.ok().body(readAdminInfo);
+		return ofDataWithHttpStatus(readAdminInfo, HttpStatus.OK);
 	}
 
 	@PatchMapping
-	public ResponseEntity<Void> updateInfo(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdateAdminInfoRequest updateAdminInfoRequest) {
+	public ResponseEntity<CommonResponse<String>> updateInfo(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdateAdminInfoRequest updateAdminInfoRequest) {
 		adminService.updateInfo(adminDetails.getUsername(), updateAdminInfoRequest);
-		return ResponseEntity.ok().build();
+		return ofDataWithHttpStatus("관리자 정보 수정 완료", HttpStatus.OK);
 	}
 
 	@PutMapping("/password")
-	public ResponseEntity<Void> updatePassword(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
+	public ResponseEntity<CommonResponse<String>> updatePassword(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
 		adminService.updatePassword(userDetails.getUsername(), updatePasswordRequest);
-		return ResponseEntity.ok().build();
+		return ofDataWithHttpStatus("관리자 비밀번호 수정 완료", HttpStatus.OK);
 	}
 }
