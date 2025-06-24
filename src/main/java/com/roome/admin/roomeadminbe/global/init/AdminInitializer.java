@@ -18,21 +18,48 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        String email = "super@admin.com";
+        String superAdminEmail = "super@admin.com";
+        String systemAdminEmail = "system@admin.com";
+        String operationAdminEmail = "operation@admin.com";
 
-        boolean exists = adminRepository.existsByAdminEmail(email);
+        boolean existsSuperAdmin = adminRepository.existsByAdminEmail(superAdminEmail);
 
-        if (!exists) {
+        if (!existsSuperAdmin) {
             Admin superAdmin = Admin.builder()
-                    .adminEmail(email)
+                    .adminEmail("super@admin.com")
                     .adminName("최고 관리자")
                     .password(passwordEncoder.encode("superAdmin1!"))
                     .adminRole(AdminRole.SUPER_ADMIN)
                     .activationStatus(ActivationStatus.ACTIVE)
                     .build();
-
             adminRepository.save(superAdmin);
-            System.out.println("슈퍼 어드민 등록 완료");
+            System.out.println("최고 관리자 등록 완료");
+        }
+
+        boolean existsSystemAdmin = adminRepository.existsByAdminEmail(systemAdminEmail);
+        if (!existsSystemAdmin) {
+            Admin tempSystemAdmin = Admin.builder()
+                    .adminEmail(systemAdminEmail)
+                    .adminName("시스템 관리자")
+                    .password(passwordEncoder.encode("systemAdmin1!"))
+                    .adminRole(AdminRole.SYSTEM_MANAGER)
+                    .activationStatus(ActivationStatus.ACTIVE)
+                    .build();
+            adminRepository.save(tempSystemAdmin);
+            System.out.println("시스템 운영자 등록 완료");
+        }
+
+        boolean existsOperationAdmin = adminRepository.existsByAdminEmail(operationAdminEmail);
+        if (!existsOperationAdmin) {
+            Admin tempOperationAdmin = Admin.builder()
+                    .adminEmail(operationAdminEmail)
+                    .adminName("운영 관리자")
+                    .password(passwordEncoder.encode("operationAdmin1!"))
+                    .adminRole(AdminRole.OPERATION_MANAGER)
+                    .activationStatus(ActivationStatus.ACTIVE)
+                    .build();
+            adminRepository.save(tempOperationAdmin);
+            System.out.println("운영 관리자 등록 완료");
         }
     }
 }
