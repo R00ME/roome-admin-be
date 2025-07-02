@@ -30,28 +30,10 @@ import static com.roome.admin.roomeadminbe.global.security.util.CookieUtil.delet
 @RequiredArgsConstructor
 public class AuthService {
 
-	private final AdminRepository adminRepository;
-	private final MailService mailService;
-	private final PasswordEncoder passwordEncoder;
 	private final TokenProvider tokenProvider;
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 	private final RefreshTokenService refreshTokenService;
 	private final TokenService tokenService;
-
-	public void sendTempPassword(SendTempPasswordRequest sendTempPasswordRequest) {
-		Admin admin = adminRepository.findByAdminEmail(sendTempPasswordRequest.getAdminEmail())
-				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관리자입니다."));
-
-		// 1. 임시 비밀번호 생성
-		String tempPassword = generateRandomPassword();
-
-		// 2. 비밀번호 저장
-		admin.updateTempPassword(passwordEncoder.encode(tempPassword));
-		adminRepository.save(admin);
-
-		// 3. 메일 전송 요청
-		mailService.sendTempPasswordEmail(admin.getAdminEmail(), tempPassword);
-	}
 
 	public TokenResponseDto login(LoginRequest loginRequestDto) {
 		UsernamePasswordAuthenticationToken authenticationToken =

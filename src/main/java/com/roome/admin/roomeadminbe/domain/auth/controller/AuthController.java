@@ -30,13 +30,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // 임시 password 발급 (첫 로그인)
-    @PostMapping("/password")
-    public ResponseEntity<CommonResponse<String>> sendTempPassword(@RequestBody SendTempPasswordRequest sendTempPasswordRequest) {
-        authService.sendTempPassword(sendTempPasswordRequest);
-        return ofDataWithHttpStatus("임시 비밀번호 발급 완료: 이메일 확인", HttpStatus.OK);
-    }
-
     // 로그인
     @PostMapping("/login")
     public ResponseEntity<Void> authorize(@RequestBody @Validated LoginRequest loginRequestDto, HttpServletResponse response) {
