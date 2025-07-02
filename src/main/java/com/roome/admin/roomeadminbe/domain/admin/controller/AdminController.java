@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +19,7 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/v1/admin/info")
+@RequestMapping("/admin/info")
 public class AdminController {
 
 	private final AdminService adminService;
@@ -38,8 +37,8 @@ public class AdminController {
 	}
 
 	@PutMapping("/password")
-	public ResponseEntity<CommonResponse<String>> updatePassword(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
-		adminService.updatePassword(userDetails.getUsername(), updatePasswordRequest);
+	public ResponseEntity<CommonResponse<String>> updatePassword(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
+		adminService.updatePassword(adminDetails.getUsername(), updatePasswordRequest);
 		return ofDataWithHttpStatus("관리자 비밀번호 수정 완료", HttpStatus.OK);
 	}
 }
