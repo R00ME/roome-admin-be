@@ -8,7 +8,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ReadAdminInfoResponse {
-	private String adminEmail;
-	private String username;
-	private String phoneNumber;
+    private String adminEmail;
+    private String username;
+    private String phoneNumber;
 }

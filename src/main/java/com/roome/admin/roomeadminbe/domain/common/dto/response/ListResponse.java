@@ -14,13 +14,13 @@ import java.util.List;
 @AllArgsConstructor
 @SuperBuilder
 public class ListResponse<T> {
-	private PagingUtil pagingUtil;
-	private List<T> content;
+    private PagingUtil pagingUtil;
+    private List<T> content;
 
-	public static <T> ListResponse<T> from(Page<T> page) {
-		return ListResponse.<T>builder()
-				.pagingUtil(PagingUtil.from(page))
-				.content(page.getContent())
-				.build();
-	}
+    public static <T> ListResponse<T> from(Page<T> page) {
+        return ListResponse.<T>builder()
+                .pagingUtil(PagingUtil.from(page))
+                .content(page.getContent())
+                .build();
+    }
 }

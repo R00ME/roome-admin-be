@@ -7,9 +7,9 @@ import lombok.Getter;
 @Getter
 public class InviteAdminRequest {
 
-	private AdminRole adminRole;
-	private String adminName;
-	@Email
-	private String adminEmail;
-	private String phoneNumber;
+    private AdminRole adminRole;
+    private String adminName;
+    @Email
+    private String adminEmail;
+    private String phoneNumber;
 }

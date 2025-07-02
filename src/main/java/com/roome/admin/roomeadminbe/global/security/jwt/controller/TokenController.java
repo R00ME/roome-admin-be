@@ -16,11 +16,11 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 @RequiredArgsConstructor
 public class TokenController {
 
-	private final TokenService tokenService;
+    private final TokenService tokenService;
 
-	@PostMapping("/refresh")
-	public ResponseEntity<CommonResponse<String>> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
-		tokenService.refreshAccessToken(request, response);
-		return ofDataWithHttpStatus("accessToken 재발급 완료", HttpStatus.OK);
-	}
+    @PostMapping("/refresh")
+    public ResponseEntity<CommonResponse<String>> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        tokenService.refreshAccessToken(request, response);
+        return ofDataWithHttpStatus("accessToken 재발급 완료", HttpStatus.OK);
+    }
 }

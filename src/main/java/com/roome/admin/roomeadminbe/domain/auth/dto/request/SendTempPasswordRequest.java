@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 public class SendTempPasswordRequest {
 
-	@Email
-	private String adminEmail;
+    @Email
+    private String adminEmail;
 }

@@ -12,45 +12,64 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class SuperAdminService {
 
-	private final MailService mailService;
-	private final AdminRepository adminRepository;
-	public void inviteAdmin(InviteAdminRequest inviteAdminRequestDto) {
+    private final MailService mailService;
+    private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
 
-		Admin newAdmin = Admin.builder()
-				.adminRole(inviteAdminRequestDto.getAdminRole())
-				.adminName(inviteAdminRequestDto.getAdminName())
-				.adminEmail(inviteAdminRequestDto.getAdminEmail())
-				.phoneNumber(inviteAdminRequestDto.getPhoneNumber())
-				// 관리자 인증 전
-				.activationStatus(ActivationStatus.PENDING)
-				// 최초 가입 전 비밀번호 null
-				.password(null)
-				.deletedAt(null)
-				.isDeletedAt(false)
-				.lastLoginAt(null)
-				.status(null)
-				.build();
-		adminRepository.save(newAdmin);
-		mailService.sendInvitationEmail(inviteAdminRequestDto.getAdminEmail());
-	}
+    public void inviteAdmin(InviteAdminRequest inviteAdminRequestDto) {
 
-	public AdminListResponse getAdminList(AdminListRequest adminListRequest) {
-		Pageable pageable = adminListRequest.toPageable();
+        String tempPassword = generateRandomPassword();
 
-		Page<AdminResponse> page = adminRepository.findAll(adminListRequest, pageable);
+        Admin newAdmin = Admin.builder()
+                .adminRole(inviteAdminRequestDto.getAdminRole())
+                .adminName(inviteAdminRequestDto.getAdminName())
+                .adminEmail(inviteAdminRequestDto.getAdminEmail())
+                .phoneNumber(inviteAdminRequestDto.getPhoneNumber())
+                .activationStatus(ActivationStatus.ACTIVE)
+                .password(passwordEncoder.encode(tempPassword))
+                .deletedAt(null)
+                .isDeletedAt(false)
+                .lastLoginAt(null)
+                .status(null)
+                .build();
+        adminRepository.save(newAdmin);
+        mailService.sendInvitationWithTempPasswordEmail(inviteAdminRequestDto.getAdminEmail(), tempPassword);
+    }
 
-		return AdminListResponse.from(page);
-	}
+    public AdminListResponse getAdminList(AdminListRequest adminListRequest) {
+        Pageable pageable = adminListRequest.toPageable();
 
-	public void deleteAdminRole(Long adminId) {
-		Admin admin = adminRepository.findById(adminId).orElseThrow();
-		admin.deleteAdminRole();
-	}
+        Page<AdminResponse> page = adminRepository.findAll(adminListRequest, pageable);
+
+        return AdminListResponse.from(page);
+    }
+
+    public void deleteAdminRole(Long adminId) {
+        Admin admin = adminRepository.findById(adminId).orElseThrow();
+        admin.deleteAdminRole();
+    }
+
+    // 랜덤 비밀번호 생성 로직
+    private String generateRandomPassword() {
+        int length = 10;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
+        StringBuilder sb = new StringBuilder();
+        SecureRandom random = new SecureRandom();
+
+        for (int i = 0; i < length; i++) {
+            int idx = random.nextInt(chars.length());
+            sb.append(chars.charAt(idx));
+        }
+        return sb.toString();
+    }
 }

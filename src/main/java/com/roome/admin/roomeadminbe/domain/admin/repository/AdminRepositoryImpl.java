@@ -19,32 +19,32 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @RequiredArgsConstructor
 public class AdminRepositoryImpl implements AdminRepositoryCustom {
 
-	private final JPAQueryFactory jpaQueryFactory;
+    private final JPAQueryFactory jpaQueryFactory;
 
-	@Override
-	public Page<AdminResponse> findAll(AdminListRequest adminListRequest, Pageable pageable) {
-		List<AdminResponse> list = jpaQueryFactory
-				.select(Projections.constructor(AdminResponse.class,
-						admin.adminId,
-						admin.adminName,
-						admin.adminEmail,
-						admin.adminRole))
-				.from(admin)
-				.where(adminRoleEq(adminListRequest.getRole()))
-				.orderBy(admin.createdAt.desc())
-				.offset(pageable.getOffset())
-				.limit(pageable.getPageSize())
-				.fetch();
+    @Override
+    public Page<AdminResponse> findAll(AdminListRequest adminListRequest, Pageable pageable) {
+        List<AdminResponse> list = jpaQueryFactory
+                .select(Projections.constructor(AdminResponse.class,
+                        admin.adminId,
+                        admin.adminName,
+                        admin.adminEmail,
+                        admin.adminRole))
+                .from(admin)
+                .where(adminRoleEq(adminListRequest.getRole()))
+                .orderBy(admin.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
-		Long count = jpaQueryFactory
-				.select(admin.count())
-				.from(admin)
-				.fetchOne();
+        Long count = jpaQueryFactory
+                .select(admin.count())
+                .from(admin)
+                .fetchOne();
 
-		return new PageImpl<>(list, pageable, count);
-	}
+        return new PageImpl<>(list, pageable, count);
+    }
 
-	private BooleanExpression adminRoleEq(AdminRole adminRole) {
-		return isEmpty(adminRole) ? null : admin.adminRole.eq(adminRole);
-	}
+    private BooleanExpression adminRoleEq(AdminRole adminRole) {
+        return isEmpty(adminRole) ? null : admin.adminRole.eq(adminRole);
+    }
 }

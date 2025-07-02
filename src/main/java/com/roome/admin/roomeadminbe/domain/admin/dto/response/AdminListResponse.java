@@ -14,13 +14,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdminListResponse {
-	private List<AdminResponse> content;
-	private PagingUtil paging;
+    private List<AdminResponse> content;
+    private PagingUtil paging;
 
-	public static AdminListResponse from(Page<AdminResponse> page) {
-		return AdminListResponse.builder()
-				.content(page.getContent())
-				.paging(PagingUtil.from(page))
-				.build();
-	}
+    public static AdminListResponse from(Page<AdminResponse> page) {
+        return AdminListResponse.builder()
+                .content(page.getContent())
+                .paging(PagingUtil.from(page))
+                .build();
+    }
 }

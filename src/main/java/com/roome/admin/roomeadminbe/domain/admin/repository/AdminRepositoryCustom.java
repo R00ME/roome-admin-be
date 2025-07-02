@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface AdminRepositoryCustom {
 
-	Page<AdminResponse> findAll(AdminListRequest adminListRequest, Pageable pageable);
+    Page<AdminResponse> findAll(AdminListRequest adminListRequest, Pageable pageable);
 }

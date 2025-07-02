@@ -1,11 +1,7 @@
 package com.roome.admin.roomeadminbe.domain.auth.service;
 
-import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
-import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
 import com.roome.admin.roomeadminbe.domain.auth.dto.TokenResponseDto;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.LoginRequest;
-import com.roome.admin.roomeadminbe.domain.auth.dto.request.SendTempPasswordRequest;
-import com.roome.admin.roomeadminbe.global.mail.MailService;
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
 import com.roome.admin.roomeadminbe.global.security.jwt.service.RefreshTokenService;
 import com.roome.admin.roomeadminbe.global.security.jwt.service.TokenService;
@@ -17,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -30,72 +25,54 @@ import static com.roome.admin.roomeadminbe.global.security.util.CookieUtil.delet
 @RequiredArgsConstructor
 public class AuthService {
 
-	private final AdminRepository adminRepository;
-	private final MailService mailService;
-	private final PasswordEncoder passwordEncoder;
-	private final TokenProvider tokenProvider;
-	private final AuthenticationManagerBuilder authenticationManagerBuilder;
-	private final RefreshTokenService refreshTokenService;
-	private final TokenService tokenService;
+    private final TokenProvider tokenProvider;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final RefreshTokenService refreshTokenService;
+    private final TokenService tokenService;
 
-	public void sendTempPassword(SendTempPasswordRequest sendTempPasswordRequest) {
-		Admin admin = adminRepository.findByAdminEmail(sendTempPasswordRequest.getAdminEmail())
-				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관리자입니다."));
+    public TokenResponseDto login(LoginRequest loginRequestDto) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword());
 
-		// 1. 임시 비밀번호 생성
-		String tempPassword = generateRandomPassword();
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		// 2. 비밀번호 저장
-		admin.updateTempPassword(passwordEncoder.encode(tempPassword));
-		adminRepository.save(admin);
+        String accessToken = tokenProvider.createAccessToken(authentication);
+        String refreshToken = tokenProvider.createRefreshToken(authentication);
 
-		// 3. 메일 전송 요청
-		mailService.sendTempPasswordEmail(admin.getAdminEmail(), tempPassword);
-	}
+        return new TokenResponseDto(accessToken, refreshToken);
+    }
 
-	public TokenResponseDto login(LoginRequest loginRequestDto) {
-		UsernamePasswordAuthenticationToken authenticationToken =
-				new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword());
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        // 1. AccessToken 추출
+        String accessToken = tokenProvider.resolveToken(request);
+        if (accessToken == null || !tokenProvider.validateAccessToken(accessToken)) {
+            throw new NoSuchElementException("유효하지 않은 AccessToken입니다.");
+        }
 
-		Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
+        // 2. 사용자 정보 추출
+        Long userId = tokenProvider.getUserIdFromAccessToken(accessToken);
 
-		String accessToken = tokenProvider.createAccessToken(authentication);
-		String refreshToken = tokenProvider.createRefreshToken(authentication);
+        // 3. accessToken blackList 에 추가
+        tokenService.addAccessTokenToBlacklist(accessToken);
+        // 4. Redis에서 RefreshToken 삭제
+        refreshTokenService.deleteRefreshToken(userId);
 
-		return new TokenResponseDto(accessToken, refreshToken);
-	}
+        // 5. 쿠키에서 RefreshToken 제거 (Set-Cookie: Max-Age=0)
+        deleteRefreshTokenCookie(response);
+    }
 
-	public void logout(HttpServletRequest request, HttpServletResponse response) {
-		// 1. AccessToken 추출
-		String accessToken = tokenProvider.resolveToken(request);
-		if (accessToken == null || !tokenProvider.validateAccessToken(accessToken)) {
-			throw new NoSuchElementException("유효하지 않은 AccessToken입니다.");
-		}
+    // 랜덤 비밀번호 생성 로직
+    private String generateRandomPassword() {
+        int length = 10;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
+        StringBuilder sb = new StringBuilder();
+        SecureRandom random = new SecureRandom();
 
-		// 2. 사용자 정보 추출
-		Long userId = tokenProvider.getUserIdFromAccessToken(accessToken);
-
-		// 3. accessToken blackList 에 추가
-		tokenService.addAccessTokenToBlacklist(accessToken);
-		// 4. Redis에서 RefreshToken 삭제
-		refreshTokenService.deleteRefreshToken(userId);
-
-		// 5. 쿠키에서 RefreshToken 제거 (Set-Cookie: Max-Age=0)
-		deleteRefreshTokenCookie(response);
-	}
-
-	// 랜덤 비밀번호 생성 로직
-	private String generateRandomPassword() {
-		int length = 10;
-		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
-		StringBuilder sb = new StringBuilder();
-		SecureRandom random = new SecureRandom();
-
-		for (int i = 0; i < length; i++) {
-			int idx = random.nextInt(chars.length());
-			sb.append(chars.charAt(idx));
-		}
-		return sb.toString();
-	}
+        for (int i = 0; i < length; i++) {
+            int idx = random.nextInt(chars.length());
+            sb.append(chars.charAt(idx));
+        }
+        return sb.toString();
+    }
 }
