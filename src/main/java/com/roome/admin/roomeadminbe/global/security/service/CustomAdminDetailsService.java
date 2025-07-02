@@ -21,25 +21,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomAdminDetailsService implements UserDetailsService {
 
-	private final AdminRepository adminRepository;
+    private final AdminRepository adminRepository;
 
-	@Override
-	@Transactional
-	public UserDetails loadUserByUsername(String adminEmail) throws UsernameNotFoundException {
-		return adminRepository.findByAdminEmail(adminEmail)
-				.map(this::createUser)
-				.orElseThrow(() -> new UsernameNotFoundException("관리자 이메일을 찾을 수 없습니다: " + adminEmail));
-	}
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(String adminEmail) throws UsernameNotFoundException {
+        return adminRepository.findByAdminEmail(adminEmail)
+                .map(this::createUser)
+                .orElseThrow(() -> new UsernameNotFoundException("관리자 이메일을 찾을 수 없습니다: " + adminEmail));
+    }
 
-	private AdminDetails createUser(Admin admin) {
-		if (admin.getActivationStatus() != ActivationStatus.ACTIVE) {
-			throw new DisabledException("비활성화된 관리자입니다.");
-		}
+    private AdminDetails createUser(Admin admin) {
+        if (admin.getActivationStatus() != ActivationStatus.ACTIVE) {
+            throw new DisabledException("비활성화된 관리자입니다.");
+        }
 
-		Collection<? extends GrantedAuthority> authorities = List.of(
-				new SimpleGrantedAuthority("ROLE_" + admin.getAdminRole().name())
-		);
+        Collection<? extends GrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("ROLE_" + admin.getAdminRole().name())
+        );
 
-		return new AdminDetails(admin.getAdminId(), admin.getAdminEmail(), admin.getPassword(), authorities);
-	}
+        return new AdminDetails(admin.getAdminId(), admin.getAdminEmail(), admin.getPassword(), authorities);
+    }
 }

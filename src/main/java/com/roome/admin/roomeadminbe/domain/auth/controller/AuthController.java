@@ -2,7 +2,6 @@ package com.roome.admin.roomeadminbe.domain.auth.controller;
 
 import com.roome.admin.roomeadminbe.domain.auth.dto.TokenResponseDto;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.LoginRequest;
-import com.roome.admin.roomeadminbe.domain.auth.dto.request.SendTempPasswordRequest;
 import com.roome.admin.roomeadminbe.domain.auth.service.AuthService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.global.security.jwt.filter.JwtFilter;

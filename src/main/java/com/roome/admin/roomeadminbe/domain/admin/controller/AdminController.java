@@ -22,23 +22,23 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 @RequestMapping("/admin/info")
 public class AdminController {
 
-	private final AdminService adminService;
+    private final AdminService adminService;
 
-	@GetMapping
-	public ResponseEntity<CommonResponse<ReadAdminInfoResponse>> readInfo(@AuthenticationPrincipal AdminDetails adminDetails) {
-		ReadAdminInfoResponse readAdminInfo = adminService.readInfo(adminDetails.getUsername());
-		return ofDataWithHttpStatus(readAdminInfo, HttpStatus.OK);
-	}
+    @GetMapping
+    public ResponseEntity<CommonResponse<ReadAdminInfoResponse>> readInfo(@AuthenticationPrincipal AdminDetails adminDetails) {
+        ReadAdminInfoResponse readAdminInfo = adminService.readInfo(adminDetails.getUsername());
+        return ofDataWithHttpStatus(readAdminInfo, HttpStatus.OK);
+    }
 
-	@PatchMapping
-	public ResponseEntity<CommonResponse<String>> updateInfo(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdateAdminInfoRequest updateAdminInfoRequest) {
-		adminService.updateInfo(adminDetails.getUsername(), updateAdminInfoRequest);
-		return ofDataWithHttpStatus("관리자 정보 수정 완료", HttpStatus.OK);
-	}
+    @PatchMapping
+    public ResponseEntity<CommonResponse<String>> updateInfo(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdateAdminInfoRequest updateAdminInfoRequest) {
+        adminService.updateInfo(adminDetails.getUsername(), updateAdminInfoRequest);
+        return ofDataWithHttpStatus("관리자 정보 수정 완료", HttpStatus.OK);
+    }
 
-	@PutMapping("/password")
-	public ResponseEntity<CommonResponse<String>> updatePassword(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
-		adminService.updatePassword(adminDetails.getUsername(), updatePasswordRequest);
-		return ofDataWithHttpStatus("관리자 비밀번호 수정 완료", HttpStatus.OK);
-	}
+    @PutMapping("/password")
+    public ResponseEntity<CommonResponse<String>> updatePassword(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
+        adminService.updatePassword(adminDetails.getUsername(), updatePasswordRequest);
+        return ofDataWithHttpStatus("관리자 비밀번호 수정 완료", HttpStatus.OK);
+    }
 }

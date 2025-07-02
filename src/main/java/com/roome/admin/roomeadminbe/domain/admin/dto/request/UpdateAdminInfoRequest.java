@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateAdminInfoRequest {
 
-	private String username;
-	private String phoneNumber;
-	private String password;
+    private String username;
+    private String phoneNumber;
+    private String password;
 }
