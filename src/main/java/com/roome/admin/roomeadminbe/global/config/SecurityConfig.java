@@ -60,6 +60,7 @@ public class SecurityConfig {
                                 .requestMatchers("/admin/auth/login").permitAll()
                                 .requestMatchers(PathRequest.toH2Console()).permitAll()
                                 .requestMatchers("/favicon.ico").permitAll()
+                                .requestMatchers("/api/alarms").permitAll()
                                 .anyRequest().authenticated()
                 );
 
