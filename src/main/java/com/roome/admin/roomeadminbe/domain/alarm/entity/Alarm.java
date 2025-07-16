@@ -1,10 +1,17 @@
 package com.roome.admin.roomeadminbe.domain.alarm.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
+@Table(name = "alarm")
 public class Alarm {
 
     @Id
