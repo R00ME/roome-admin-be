@@ -64,7 +64,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/admin/auth/login").permitAll()
+                                .requestMatchers("/api/admin/auth/login").permitAll()
                                 .requestMatchers(PathRequest.toH2Console()).permitAll()
                                 .requestMatchers("/favicon.ico").permitAll()
                                 .requestMatchers("/api/alarms").permitAll()
