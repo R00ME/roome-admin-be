@@ -19,7 +19,7 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/admin/info")
+@RequestMapping("/api/admin/info")
 public class AdminController {
 
     private final AdminService adminService;

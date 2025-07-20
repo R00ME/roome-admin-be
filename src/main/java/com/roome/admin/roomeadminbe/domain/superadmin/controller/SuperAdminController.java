@@ -18,7 +18,7 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/super")
+@RequestMapping("/api/admin/super")
 public class SuperAdminController {
 
     private final SuperAdminService superAdminService;

@@ -24,7 +24,7 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/auth")
+@RequestMapping("/api/admin/auth")
 public class AuthController {
 
     private final AuthService authService;
