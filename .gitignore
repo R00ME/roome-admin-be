@@ -49,4 +49,4 @@ out/
 **/generated
 
 ### Dockrefile ###
-**/Dockerfile
+Dockerfile
