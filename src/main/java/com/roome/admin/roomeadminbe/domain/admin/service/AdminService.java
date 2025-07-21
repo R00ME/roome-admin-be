@@ -66,10 +66,10 @@ public class AdminService {
     public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
         String newPassword = generateRandomPassword();
         Optional<Admin> admin = adminRepository.findByAdminEmailAndAdminName(resetPasswordRequest.getConfirmEmail(), resetPasswordRequest.getConfirmName());
-        if(admin.isPresent()) {
-            mailService.sendNewPasswordEmail(resetPasswordRequest.getConfirmEmail(), newPassword);
-        } else {
+        if (admin.isEmpty()) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
+        mailService.sendNewPasswordEmail(resetPasswordRequest.getConfirmEmail(), newPassword);
+        admin.get().updatePassword(resetPasswordRequest.getConfirmEmail(), newPassword);
     }
 }

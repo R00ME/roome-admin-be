@@ -43,7 +43,7 @@ public class AdminController {
         return ofDataWithHttpStatus("관리자 비밀번호 수정 완료", HttpStatus.OK);
     }
 
-    @PutMapping("/admin/auth/password/reset")
+    @PutMapping("/auth/password/reset")
     public ResponseEntity<CommonResponse<String>> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest) {
         adminService.resetPassword(resetPasswordRequest);
         return ofDataWithHttpStatus("임시 비밀번호 발급 완료, 이메일을 확인하세요.", HttpStatus.OK);
