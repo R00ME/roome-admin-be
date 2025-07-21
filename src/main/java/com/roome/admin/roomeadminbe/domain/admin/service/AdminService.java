@@ -70,6 +70,6 @@ public class AdminService {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
         mailService.sendNewPasswordEmail(resetPasswordRequest.getConfirmEmail(), newPassword);
-        admin.get().updatePassword(resetPasswordRequest.getConfirmEmail(), newPassword);
+        admin.get().updatePassword(resetPasswordRequest.getConfirmEmail(), passwordEncoder.encode(newPassword));
     }
 }

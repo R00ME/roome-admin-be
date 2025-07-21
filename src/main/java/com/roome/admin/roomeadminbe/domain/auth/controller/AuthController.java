@@ -1,6 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.auth.controller;
 
-import com.roome.admin.roomeadminbe.domain.auth.dto.TokenResponseDto;
+import com.roome.admin.roomeadminbe.domain.auth.dto.response.TokenResponse;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.LoginRequest;
 import com.roome.admin.roomeadminbe.domain.auth.service.AuthService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
@@ -32,14 +32,14 @@ public class AuthController {
     // 로그인
     @PostMapping("/login")
     public ResponseEntity<Void> authorize(@RequestBody @Validated LoginRequest loginRequestDto, HttpServletResponse response) {
-        TokenResponseDto tokenResponseDto = authService.login(loginRequestDto);
+        TokenResponse tokenResponse = authService.login(loginRequestDto);
 
         // accessToken -> header
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer " + tokenResponseDto.getAccessToken());
+        httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer " + tokenResponse.getAccessToken());
 
         // refreshToken -> HttpOnly 쿠키
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenResponseDto.getRefreshToken())
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokenResponse.getRefreshToken())
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
