@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
+import static com.roome.admin.roomeadminbe.global.mail.RandomPasswordGenerator.generateRandomPassword;
 
 @Service
 @Transactional
@@ -57,19 +57,5 @@ public class SuperAdminService {
     public void deleteAdminRole(Long adminId) {
         Admin admin = adminRepository.findById(adminId).orElseThrow();
         admin.deleteAdminRole();
-    }
-
-    // 랜덤 비밀번호 생성 로직
-    private String generateRandomPassword() {
-        int length = 10;
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
-        StringBuilder sb = new StringBuilder();
-        SecureRandom random = new SecureRandom();
-
-        for (int i = 0; i < length; i++) {
-            int idx = random.nextInt(chars.length());
-            sb.append(chars.charAt(idx));
-        }
-        return sb.toString();
     }
 }

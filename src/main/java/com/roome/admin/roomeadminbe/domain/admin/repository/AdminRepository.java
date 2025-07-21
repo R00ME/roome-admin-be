@@ -12,4 +12,6 @@ public interface AdminRepository extends JpaRepository<Admin, Long>, AdminReposi
 
     // super admin 생성에 필요
     boolean existsByAdminEmail(String email);
+
+    Optional<Admin> findByAdminEmailAndAdminName(String confirmEmail, String confirmName);
 }
