@@ -1,5 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.alarm.entity;
 
+import com.roome.admin.roomeadminbe.domain.alarm.type.AlarmCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,7 +35,8 @@ public class Alarm {
     @Column(name = "is_urgent", nullable = false)
     private boolean isUrgent;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
-    private String category;
+    private AlarmCategory category;
 
 }
