@@ -19,7 +19,7 @@ public class AdminInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         String superAdminEmail = "super@admin.com";
-        String systemAdminEmail = "system@admin.com";
+        String systemAdminEmail = "9noeyni9@gmail.com";
         String operationAdminEmail = "operation@admin.com";
 
         boolean existsSuperAdmin = adminRepository.existsByAdminEmail(superAdminEmail);

@@ -1,4 +1,4 @@
-package com.roome.admin.roomeadminbe.domain.auth.dto;
+package com.roome.admin.roomeadminbe.domain.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TokenResponseDto {
+public class TokenResponse {
 
     private String accessToken;
     private String refreshToken;

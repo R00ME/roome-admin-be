@@ -39,11 +39,6 @@ public class Admin extends Timestamped {
         return this.activationStatus == ActivationStatus.ACTIVE;
     }
 
-    public void updateTempPassword(String password) {
-        this.password = password;
-        this.activationStatus = ActivationStatus.ACTIVE;
-    }
-
     public void updateInfo(String adminEmail, UpdateAdminInfoRequest updateAdminInfoRequest) {
         this.adminName = updateAdminInfoRequest.getUsername().equals("") ? adminName : updateAdminInfoRequest.getUsername();
         this.phoneNumber = updateAdminInfoRequest.getPhoneNumber().equals("") ? phoneNumber : updateAdminInfoRequest.getPhoneNumber();
