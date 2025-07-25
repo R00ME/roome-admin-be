@@ -1,16 +1,23 @@
 package com.roome.admin.roomeadminbe.domain.admin.service;
 
+import com.roome.admin.roomeadminbe.domain.admin.dto.request.ResetPasswordRequest;
 import com.roome.admin.roomeadminbe.domain.admin.dto.request.UpdateAdminInfoRequest;
 import com.roome.admin.roomeadminbe.domain.admin.dto.request.UpdatePasswordRequest;
 import com.roome.admin.roomeadminbe.domain.admin.dto.response.ReadAdminInfoResponse;
 import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
 import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
+import com.roome.admin.roomeadminbe.global.exception.BusinessException;
+import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
+import com.roome.admin.roomeadminbe.global.mail.MailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import static com.roome.admin.roomeadminbe.global.mail.RandomPasswordGenerator.generateRandomPassword;
 
 @Service
 @Transactional
@@ -19,6 +26,7 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     public ReadAdminInfoResponse readInfo(String adminEmail) {
         Admin admin = adminRepository.findByAdminEmail(adminEmail).orElseThrow();
@@ -53,5 +61,15 @@ public class AdminService {
         }
 
         admin.updatePassword(adminEmail, passwordEncoder.encode(updatePasswordRequest.getNewPassword()));
+    }
+
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+        String newPassword = generateRandomPassword();
+        Optional<Admin> admin = adminRepository.findByAdminEmailAndAdminName(resetPasswordRequest.getConfirmEmail(), resetPasswordRequest.getConfirmName());
+        if (admin.isEmpty()) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+        mailService.sendNewPasswordEmail(resetPasswordRequest.getConfirmEmail(), newPassword);
+        admin.get().updatePassword(resetPasswordRequest.getConfirmEmail(), passwordEncoder.encode(newPassword));
     }
 }

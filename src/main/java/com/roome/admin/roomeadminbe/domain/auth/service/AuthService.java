@@ -1,6 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.auth.service;
 
-import com.roome.admin.roomeadminbe.domain.auth.dto.TokenResponseDto;
+import com.roome.admin.roomeadminbe.domain.auth.dto.response.TokenResponse;
 import com.roome.admin.roomeadminbe.domain.auth.dto.request.LoginRequest;
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
 import com.roome.admin.roomeadminbe.global.security.jwt.service.RefreshTokenService;
@@ -30,7 +30,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final TokenService tokenService;
 
-    public TokenResponseDto login(LoginRequest loginRequestDto) {
+    public TokenResponse login(LoginRequest loginRequestDto) {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword());
 
@@ -40,7 +40,7 @@ public class AuthService {
         String accessToken = tokenProvider.createAccessToken(authentication);
         String refreshToken = tokenProvider.createRefreshToken(authentication);
 
-        return new TokenResponseDto(accessToken, refreshToken);
+        return new TokenResponse(accessToken, refreshToken);
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
