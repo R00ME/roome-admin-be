@@ -19,6 +19,7 @@ public class NotificationController {
     @GetMapping
     public List<NotificationResponseDto> getAllNotifications(){
         return notificationService.getAllNotifications();
+    }
     //post API
     @PostMapping
     public ResponseEntity<Notification> crateNotification(@RequestBody NotificationRequestDto requestDto){
