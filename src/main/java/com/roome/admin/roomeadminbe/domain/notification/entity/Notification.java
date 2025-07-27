@@ -1,6 +1,6 @@
-package com.roome.admin.roomeadminbe.domain.alarm.entity;
+package com.roome.admin.roomeadminbe.domain.notification.entity;
 
-import com.roome.admin.roomeadminbe.domain.alarm.type.AlarmCategory;
+import com.roome.admin.roomeadminbe.domain.notification.type.NotificationCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,19 +12,19 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "alarm")
-public class Alarm {
+@Table(name = "bo_notifications")
+public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "alarm_id")
-    private Long alarmId;
+    @Column(name = "notification_id")
+    private Long notificationId;
 
-    @Column(name = "alarm_title", nullable = false)
-    private String alarmTitle;
+    @Column(name = "notification_title", nullable = false)
+    private String notificationTitle;
 
-    @Column(name = "alarm_content", nullable = false)
-    private String alarmContent;
+    @Column(name = "notification_content", nullable = false)
+    private String notificationContent;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -37,6 +37,6 @@ public class Alarm {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
-    private AlarmCategory category;
+    private NotificationCategory category;
 
 }

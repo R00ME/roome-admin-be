@@ -1,9 +1,9 @@
-package com.roome.admin.roomeadminbe.domain.alarm.type;
+package com.roome.admin.roomeadminbe.domain.notification.type;
 
 import lombok.Getter;
 
 @Getter
-public enum AlarmCategory {
+public enum NotificationCategory {
 
     EVENT("이벤트 관리"),
     SYSTEM("운영시스템 / 배포현황"),
@@ -11,7 +11,7 @@ public enum AlarmCategory {
 
     private final String displayName;
 
-    AlarmCategory(String displayName){
+    NotificationCategory(String displayName){
         this.displayName = displayName;
     }
 }
