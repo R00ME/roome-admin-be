@@ -20,7 +20,7 @@ public class TokenController {
 
     private final TokenService tokenService;
 
-    @PostMapping("/refresh")
+    @PostMapping("/admin/refresh")
     public ResponseEntity<CommonResponse<String>> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         tokenService.refreshAccessToken(request, response);
         return ofDataWithHttpStatus("accessToken 재발급 완료", HttpStatus.OK);

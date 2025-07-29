@@ -36,6 +36,11 @@ public class JwtFilter extends GenericFilterBean {
         String jwt = tokenProvider.resolveToken(httpServletRequest);
         String requestURI = httpServletRequest.getRequestURI();
 
+        if ("OPTIONS".equals(httpServletRequest.getMethod())) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
+
         if (StringUtils.hasText(jwt) && tokenProvider.validateAccessToken(jwt)) {
             // blacklist 확인
             Boolean isBlacklisted = blacklistRedisTemplate.hasKey("blacklist:" + jwt);
