@@ -5,7 +5,6 @@ import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAuthenticatio
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -65,7 +64,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/api/admin/auth/login").permitAll()
-                                .requestMatchers(PathRequest.toH2Console()).permitAll()
+                                .requestMatchers("/api/admin/refresh").permitAll()
                                 .requestMatchers("/favicon.ico").permitAll()
                                 .requestMatchers("/api/alarms").permitAll()
                                 .requestMatchers("/api/admin/auth/password/reset").permitAll()
