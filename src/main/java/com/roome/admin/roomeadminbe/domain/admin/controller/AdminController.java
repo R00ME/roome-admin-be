@@ -7,12 +7,12 @@ import com.roome.admin.roomeadminbe.domain.admin.dto.response.ReadAdminInfoRespo
 import com.roome.admin.roomeadminbe.domain.admin.service.AdminService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse.ofDataWithHttpStatus;
@@ -32,13 +32,13 @@ public class AdminController {
     }
 
     @PatchMapping("/info")
-    public ResponseEntity<CommonResponse<String>> updateInfo(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdateAdminInfoRequest updateAdminInfoRequest) {
+    public ResponseEntity<CommonResponse<String>> updateInfo(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody UpdateAdminInfoRequest updateAdminInfoRequest) {
         adminService.updateInfo(adminDetails.getUsername(), updateAdminInfoRequest);
         return ofDataWithHttpStatus("관리자 정보 수정 완료", HttpStatus.OK);
     }
 
     @PutMapping("/info/password")
-    public ResponseEntity<CommonResponse<String>> updatePassword(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
+    public ResponseEntity<CommonResponse<String>> updatePassword(@AuthenticationPrincipal AdminDetails adminDetails, @Valid @RequestBody UpdatePasswordRequest updatePasswordRequest) {
         adminService.updatePassword(adminDetails.getUsername(), updatePasswordRequest);
         return ofDataWithHttpStatus("관리자 비밀번호 수정 완료", HttpStatus.OK);
     }

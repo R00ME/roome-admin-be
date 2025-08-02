@@ -38,7 +38,6 @@ public class SuperAdminService {
                 .activationStatus(ActivationStatus.ACTIVE)
                 .password(passwordEncoder.encode(tempPassword))
                 .deletedAt(null)
-                .isDeletedAt(false)
                 .lastLoginAt(null)
                 .status(null)
                 .build();

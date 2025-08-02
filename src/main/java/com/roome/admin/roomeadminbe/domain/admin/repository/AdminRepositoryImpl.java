@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.admin.roomeadminbe.domain.admin.dto.request.AdminListRequest;
 import com.roome.admin.roomeadminbe.domain.admin.dto.response.AdminResponse;
+import com.roome.admin.roomeadminbe.domain.admin.entity.ActivationStatus;
 import com.roome.admin.roomeadminbe.domain.admin.entity.AdminRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,7 @@ public class AdminRepositoryImpl implements AdminRepositoryCustom {
                         admin.adminEmail,
                         admin.adminRole))
                 .from(admin)
+                .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
                 .where(adminRoleEq(adminListRequest.getRole()))
                 .orderBy(admin.createdAt.desc())
                 .offset(pageable.getOffset())
