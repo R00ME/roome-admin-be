@@ -1,5 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.auth.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
@@ -7,6 +8,7 @@ import lombok.Getter;
 public class LoginRequest {
 
     @NotBlank
+    @Email
     private String email;
 
     @NotBlank

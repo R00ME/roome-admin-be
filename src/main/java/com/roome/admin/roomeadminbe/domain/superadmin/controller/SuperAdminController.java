@@ -24,7 +24,7 @@ public class SuperAdminController {
     private final SuperAdminService superAdminService;
 
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    @PostMapping("/invite")
+    @PostMapping("/invitation")
     public ResponseEntity<CommonResponse<String>> inviteAdmin(@AuthenticationPrincipal UserDetails userDetails, @RequestBody @Validated InviteAdminRequest inviteAdminRequestDto) {
         superAdminService.inviteAdmin(inviteAdminRequestDto);
         return ofDataWithHttpStatus("관리자 초대 완료", HttpStatus.OK);
@@ -38,7 +38,7 @@ public class SuperAdminController {
     }
 
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    @PatchMapping("/admins/{adminId}/delete")
+    @DeleteMapping("/admins/{adminId}/delete")
     public ResponseEntity<CommonResponse<String>> deleteAdminRole(@AuthenticationPrincipal UserDetails userDetails, @PathVariable("adminId") Long adminId) {
         superAdminService.deleteAdminRole(adminId);
         return ofDataWithHttpStatus("관리자 권한 회수 완료", HttpStatus.OK);

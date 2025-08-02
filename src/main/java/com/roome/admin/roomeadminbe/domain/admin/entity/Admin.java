@@ -30,7 +30,6 @@ public class Admin extends Timestamped {
     @Enumerated(EnumType.STRING)
     private ActivationStatus activationStatus;
     private LocalDateTime deletedAt;
-    private Boolean isDeletedAt;
     @Enumerated(EnumType.STRING)
     private Status status;
     private LocalDateTime lastLoginAt;
@@ -39,18 +38,17 @@ public class Admin extends Timestamped {
         return this.activationStatus == ActivationStatus.ACTIVE;
     }
 
-    public void updateInfo(String adminEmail, UpdateAdminInfoRequest updateAdminInfoRequest) {
+    public void updateInfo(UpdateAdminInfoRequest updateAdminInfoRequest) {
         this.adminName = updateAdminInfoRequest.getUsername().equals("") ? adminName : updateAdminInfoRequest.getUsername();
         this.phoneNumber = updateAdminInfoRequest.getPhoneNumber().equals("") ? phoneNumber : updateAdminInfoRequest.getPhoneNumber();
     }
 
-    public void updatePassword(String adminEmail, String encryptedNewPassword) {
+    public void updatePassword(String encryptedNewPassword) {
         this.password = encryptedNewPassword;
     }
 
     public void deleteAdminRole() {
         this.activationStatus = ActivationStatus.INACTIVE;
         this.deletedAt = LocalDateTime.now();
-        this.isDeletedAt = Boolean.TRUE;
     }
 }
