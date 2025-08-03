@@ -39,9 +39,6 @@ public class AdminService {
 
     public void updateInfo(String adminEmail, UpdateAdminInfoRequest updateAdminInfoRequest) {
         Admin admin = existAdmin(adminEmail);
-        if (!passwordEncoder.matches(updateAdminInfoRequest.getPassword(), admin.getPassword())) {
-            throw new BusinessException(ErrorCode.PASSWORD_NOT_MATCHES);
-        }
         admin.updateInfo(updateAdminInfoRequest);
     }
 
