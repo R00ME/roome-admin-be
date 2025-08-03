@@ -9,5 +9,4 @@ public class UpdateAdminInfoRequest {
 
     private String username;
     private String phoneNumber;
-    private String password;
 }
