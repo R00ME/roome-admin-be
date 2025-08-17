@@ -52,6 +52,12 @@ dependencies {
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+    // GA
+    implementation(platform("com.google.cloud:libraries-bom:latest.release"))
+    implementation("com.google.analytics:google-analytics-data:0.82.0")
+
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 }
 
 tasks.named('test') {
@@ -68,6 +74,7 @@ sourceSets {
 
 tasks.withType(JavaCompile).configureEach {
     options.annotationProcessorGeneratedSourcesDirectory = file(generatedDir)
+    options.compilerArgs += ['-parameters']
 }
 
 clean {
