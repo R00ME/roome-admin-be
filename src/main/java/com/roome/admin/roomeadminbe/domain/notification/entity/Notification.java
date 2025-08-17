@@ -1,5 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.notification.entity;
 
+import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
 import com.roome.admin.roomeadminbe.domain.notification.type.NotificationCategory;
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,4 +40,8 @@ public class Notification {
     @Column(name = "category", nullable = false)
     private NotificationCategory category;
 
+//    //admin 참조하도록 설정
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "admin_id", nullable = false)
+//    private Admin admin;
 }
