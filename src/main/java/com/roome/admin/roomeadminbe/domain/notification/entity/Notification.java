@@ -1,6 +1,5 @@
 package com.roome.admin.roomeadminbe.domain.notification.entity;
 
-import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
 import com.roome.admin.roomeadminbe.domain.notification.type.NotificationCategory;
 import jakarta.persistence.*;
 import lombok.*;
