@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static com.roome.admin.roomeadminbe.domain.apiUsage.entity.QUserApiUsage.userApiUsage;
+import static com.roome.admin.roomeadminbe.domain.common.entity.QUser.user;
 
 @RequiredArgsConstructor
 public class UserApiUsageRepositoryImpl implements UserApiUsageRepositoryCustom {
@@ -31,6 +32,7 @@ public class UserApiUsageRepositoryImpl implements UserApiUsageRepositoryCustom 
                         userApiUsage.date
                 ))
                 .from(userApiUsage)
+                .join(user).on(userApiUsage.userId.eq(user.id))
                 .where(
                         userEq(apiUsageSearchRequest.getUserId()),
                         domainEq(apiUsageSearchRequest.getDomain()),
@@ -45,6 +47,7 @@ public class UserApiUsageRepositoryImpl implements UserApiUsageRepositoryCustom 
         Long count = jpaQueryFactory
                 .select(userApiUsage.count())
                 .from(userApiUsage)
+                .join(user).on(userApiUsage.userId.eq(user.id))
                 .where(
                         userEq(apiUsageSearchRequest.getUserId()),
                         domainEq(apiUsageSearchRequest.getDomain()),
