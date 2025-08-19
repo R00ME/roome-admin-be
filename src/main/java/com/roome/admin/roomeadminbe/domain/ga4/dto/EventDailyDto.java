@@ -1,4 +1,4 @@
-package com.roome.admin.roomeadminbe.global.ga4.dto;
+package com.roome.admin.roomeadminbe.domain.ga4.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

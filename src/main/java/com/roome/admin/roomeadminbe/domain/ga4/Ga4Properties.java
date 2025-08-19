@@ -1,4 +1,4 @@
-package com.roome.admin.roomeadminbe.global.ga4;
+package com.roome.admin.roomeadminbe.domain.ga4;
 
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

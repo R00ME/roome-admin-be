@@ -1,4 +1,4 @@
-package com.roome.admin.roomeadminbe.global.ga4.entity;
+package com.roome.admin.roomeadminbe.domain.ga4.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

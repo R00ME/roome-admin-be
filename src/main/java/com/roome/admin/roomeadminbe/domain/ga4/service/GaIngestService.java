@@ -1,10 +1,10 @@
-package com.roome.admin.roomeadminbe.global.ga4.service;
+package com.roome.admin.roomeadminbe.domain.ga4.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.analytics.data.v1beta.*;
-import com.roome.admin.roomeadminbe.global.ga4.Ga4Properties;
-import com.roome.admin.roomeadminbe.global.ga4.entity.FeatureEventDaily;
-import com.roome.admin.roomeadminbe.global.ga4.repository.FeatureEventDailyRepository;
+import com.roome.admin.roomeadminbe.domain.ga4.Ga4Properties;
+import com.roome.admin.roomeadminbe.domain.ga4.entity.FeatureEventDaily;
+import com.roome.admin.roomeadminbe.domain.ga4.repository.FeatureEventDailyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

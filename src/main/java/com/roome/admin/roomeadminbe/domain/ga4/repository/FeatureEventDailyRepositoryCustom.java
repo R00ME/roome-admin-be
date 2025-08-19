@@ -1,6 +1,6 @@
-package com.roome.admin.roomeadminbe.global.ga4.repository;
+package com.roome.admin.roomeadminbe.domain.ga4.repository;
 
-import com.roome.admin.roomeadminbe.global.ga4.dto.EventDailyDto;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.EventDailyDto;
 import jakarta.annotation.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

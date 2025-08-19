@@ -1,6 +1,6 @@
 package com.roome.admin.roomeadminbe.global.init;
 
-import com.roome.admin.roomeadminbe.global.ga4.service.GaIngestService;
+import com.roome.admin.roomeadminbe.domain.ga4.service.GaIngestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

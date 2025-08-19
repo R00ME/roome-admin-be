@@ -1,4 +1,4 @@
-package com.roome.admin.roomeadminbe.global.ga4.repository;
+package com.roome.admin.roomeadminbe.domain.ga4.repository;
 
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Order;
@@ -7,7 +7,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.roome.admin.roomeadminbe.global.ga4.dto.EventDailyDto;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.EventDailyDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.roome.admin.roomeadminbe.global.ga4.entity.QFeatureEventDaily.featureEventDaily;
+import static com.roome.admin.roomeadminbe.domain.ga4.entity.QFeatureEventDaily.featureEventDaily;
 
 @RequiredArgsConstructor
 public class FeatureEventDailyRepositoryImpl implements FeatureEventDailyRepositoryCustom {
