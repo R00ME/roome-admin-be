@@ -47,7 +47,7 @@ public class RedisConfig {
         return factory;
     }
 
-    @Bean(name = "refreshTokenRedisTemplate")
+    @Bean(name = "BO_refreshTokenRedisTemplate")
     public RedisTemplate<String, String> refreshTokenRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
@@ -59,8 +59,17 @@ public class RedisConfig {
         return template;
     }
 
-    @Bean
+    @Bean(name = "BO_blacklistRedisTemplate")
     public RedisTemplate<String, Long> blacklistRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Long> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
+        return template;
+    }
+
+    @Bean(name = "apiCountRedisTemplate")
+    public RedisTemplate<String, Long> apiCountRedisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Long> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());

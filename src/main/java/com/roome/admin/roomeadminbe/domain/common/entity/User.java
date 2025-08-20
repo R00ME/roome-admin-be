@@ -5,6 +5,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Entity
 @Table(name = "users") // 같은 테이블 매핑
@@ -16,4 +18,7 @@ public class User {
     private String name;
     private String nickname;
     private String profileImage;
+    private Gender gender;
+    private LocalDateTime lastLogin;
+    private LocalDateTime createdAt;
 }
