@@ -4,10 +4,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.ApiUsageSearchRequest;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.UserMostUsedDomainSearchRequest;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.ApiUsageResponse;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.GetUserMostDomainResponse;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.MostUsedDomainResponse;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.UserInfoResponse;
+import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.*;
 import com.roome.admin.roomeadminbe.domain.apiUsage.repository.UserApiUsageRepository;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.domain.common.entity.User;
@@ -164,6 +161,43 @@ public class ApiUsageService {
 
         return ListResponse.from(page);
     }
+
+    @Transactional(readOnly = true)
+    public UserDomainStatsResponse getUserDomainStats(Long userId, LocalDate startDate) {
+        LocalDate start = (startDate != null) ? startDate : LocalDate.now();
+
+        LocalDate thirtyDaysAgo = start.minusDays(30);
+        LocalDate sixtyDaysAgo = start.minusDays(60);
+
+        // --- 최근 30일 (DB: 오늘 제외) ---
+        List<DomainCountResponse> recentFromDb =
+                userApiUsageRepository.findDomainCounts(userId, thirtyDaysAgo, start.minusDays(1));
+
+        // Redis (오늘 데이터)
+        List<DomainCountResponse> todayFromRedis = loadDomainCountsFromRedis(userId, start);
+
+        // 합치기
+        Map<String, Long> mergedRecent = new HashMap<>();
+        Stream.concat(recentFromDb.stream(), todayFromRedis.stream())
+                .forEach(dto -> mergedRecent.merge(dto.getDomain(), dto.getCount(), Long::sum));
+
+        List<DomainCountResponse> recentDomainCounts = mergedRecent.entrySet().stream()
+                .map(e -> new DomainCountResponse(e.getKey(), e.getValue()))
+                .toList();
+        Long recentTotal = recentDomainCounts.stream().mapToLong(DomainCountResponse::getCount).sum();
+
+        // --- 이전 30일 ---
+        List<DomainCountResponse> prevDomainCounts =
+                userApiUsageRepository.findDomainCounts(userId, sixtyDaysAgo, thirtyDaysAgo.minusDays(1));
+        Long prevTotal = prevDomainCounts.stream().mapToLong(DomainCountResponse::getCount).sum();
+
+        return new UserDomainStatsResponse(
+                userId,
+                new PeriodDomainStatsResponse(recentTotal, recentDomainCounts),
+                new PeriodDomainStatsResponse(prevTotal, prevDomainCounts)
+        );
+    }
+
     private List<ApiUsageResponse> loadFromRedis(ApiUsageSearchRequest request) {
         LocalDate today = LocalDate.now();
         String pattern = "api_count:" + today + ":" + (request.getUserId() != null ? request.getUserId() : "*") + ":*";
@@ -182,6 +216,28 @@ public class ApiUsageService {
             result.add(new ApiUsageResponse(userId, resolveDomain(uri), uri, count, today));
         }
         return result;
+    }
+
+    // 통계 전용
+    private List<DomainCountResponse> loadDomainCountsFromRedis(Long userId, LocalDate date) {
+        String pattern = "api_count:" + date + ":" + userId + ":*";
+        Set<String> keys = apiCountRedisTemplate.keys(pattern);
+
+        if (keys == null || keys.isEmpty()) return List.of();
+
+        Map<String, Long> domainCountMap = new HashMap<>();
+        for (String key : keys) {
+            Long count = apiCountRedisTemplate.opsForValue().get(key);
+            String[] parts = key.split(":");
+            String uri = parts[3];
+            String domain = resolveDomain(uri);
+
+            domainCountMap.merge(domain, count, Long::sum);
+        }
+
+        return domainCountMap.entrySet().stream()
+                .map(e -> new DomainCountResponse(e.getKey(), e.getValue()))
+                .toList();
     }
 
     private String resolveDomain(String uri) {

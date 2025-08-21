@@ -7,10 +7,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.ApiUsageSearchRequest;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.UserMostUsedDomainSearchRequest;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.ApiUsageResponse;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.GetUserMostDomainResponse;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.MostUsedDomainResponse;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.UserInfoResponse;
+import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -66,6 +63,21 @@ public class UserApiUsageRepositoryImpl implements UserApiUsageRepositoryCustom 
                 .fetchOne();
 
         return new PageImpl<>(list, pageable, count != null ? count : 0);
+    }
+
+    public List<DomainCountResponse> findDomainCounts(Long userId, LocalDate from, LocalDate to) {
+        return jpaQueryFactory
+                .select(Projections.constructor(DomainCountResponse.class,
+                        userApiUsage.domain,
+                        userApiUsage.count.sum()
+                ))
+                .from(userApiUsage)
+                .where(
+                        userApiUsage.userId.eq(userId),
+                        userApiUsage.date.between(from, to)
+                )
+                .groupBy(userApiUsage.domain)
+                .fetch();
     }
 
 //    @Override
