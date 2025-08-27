@@ -1,8 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.common.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -21,4 +19,7 @@ public class User {
     private Gender gender;
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Status status;
 }

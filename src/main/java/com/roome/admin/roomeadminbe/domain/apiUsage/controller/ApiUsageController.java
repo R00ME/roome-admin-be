@@ -1,7 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.apiUsage.controller;
 
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.ApiUsageSearchRequest;
-import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.UserDomainStatsRequest;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.UserMostUsedDomainSearchRequest;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.ApiUsageResponse;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.GetUserMostDomainResponse;
@@ -12,7 +11,6 @@ import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +28,7 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 public class ApiUsageController {
 
     private final ApiUsageService apiUsageService;
+//    private final UserStatisticsTupleService userStatisticsTupleService;
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping
@@ -45,9 +44,22 @@ public class ApiUsageController {
         return ofDataWithHttpStatus(apiUsageService.getUsersMostUsedDomain(request), HttpStatus.OK);
     }
 
+//    // 랭킹 유저 10명 + 사용자 별 가장 많이 사용한 도메인
+//    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+//    @GetMapping("/all")
+//    public ResponseEntity<CommonResponse<UserDomainAndRankingResponse>> getDomainAndRanking(
+//            @ModelAttribute UserMostUsedDomainSearchRequest request
+//    ) {
+//        log.info("UserMostUsedDomainSearchRequest = {}", request);
+//
+//        UserDomainAndRankingResponse response = userStatisticsTupleService.getDomainAndRanking(request);
+//        return ofDataWithHttpStatus(response, HttpStatus.OK);
+//    }
+
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping("/{userId}/user-domain-stats")
-    public ResponseEntity<CommonResponse<UserDomainStatsResponse>> getUserDomainStats(@AuthenticationPrincipal AdminDetails adminDetails, @PathVariable Long userId,@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
+    public ResponseEntity<CommonResponse<UserDomainStatsResponse>> getUserDomainStats(@AuthenticationPrincipal AdminDetails adminDetails, @PathVariable Long userId) {
+        LocalDate startDate = LocalDate.now();
         UserDomainStatsResponse response = apiUsageService.getUserDomainStats(userId, startDate);
         return ofDataWithHttpStatus(response, HttpStatus.OK);
     }

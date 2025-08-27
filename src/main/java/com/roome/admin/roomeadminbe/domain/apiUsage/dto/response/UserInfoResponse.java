@@ -1,6 +1,7 @@
 package com.roome.admin.roomeadminbe.domain.apiUsage.dto.response;
 
 import com.roome.admin.roomeadminbe.domain.common.entity.Gender;
+import com.roome.admin.roomeadminbe.domain.common.entity.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -16,4 +17,5 @@ public class UserInfoResponse {
     private Gender gender;
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;
+    private Status status;
 }

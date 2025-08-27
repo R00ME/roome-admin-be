@@ -9,6 +9,7 @@ import com.roome.admin.roomeadminbe.domain.apiUsage.repository.UserApiUsageRepos
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.domain.common.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,12 +27,16 @@ import static com.roome.admin.roomeadminbe.domain.common.entity.QUser.user;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ApiUsageService {
 
     private final UserApiUsageRepository userApiUsageRepository;
     @Qualifier("apiCountRedisTemplate")
     private final RedisTemplate<String, Long> apiCountRedisTemplate;
     private final JPAQueryFactory jpaQueryFactory;
+    private static final List<String> FIXED_DOMAINS = List.of(
+            "cd", "book", "room", "points", "mates", "etc"
+    );
 
     @Transactional(readOnly = true)
     public ListResponse<ApiUsageResponse> getApiUsageList(ApiUsageSearchRequest request) {
@@ -70,6 +75,7 @@ public class ApiUsageService {
                         user.gender,
                         user.lastLogin,
                         user.createdAt,
+                        user.status,
                         userApiUsage.domain,
                         userApiUsage.count.sum()
                 )
@@ -79,6 +85,15 @@ public class ApiUsageService {
                 .orderBy(user.id.asc(), userApiUsage.count.sum().desc())
                 .fetch();
 
+        log.info("▶ DB tuples size = {}", dbTuples.size());
+        for (Tuple tuple : dbTuples) {
+            log.info("DB tuple -> uid={}, email={}, domain={}, cnt={}",
+                    tuple.get(user.id),
+                    tuple.get(user.email),
+                    tuple.get(userApiUsage.domain),
+                    tuple.get(userApiUsage.count.sum()));
+        }
+
         // 2. Redis에서 오늘 데이터 조회
         LocalDate today = LocalDate.now();
         String pattern = "api_count:" + today + ":*:*";
@@ -87,16 +102,29 @@ public class ApiUsageService {
         Map<String, Long> redisMap = new HashMap<>();
         if (keys != null) {
             for (String key : keys) {
-                Long count = apiCountRedisTemplate.opsForValue().get(key);
-                String[] parts = key.split(":");
-                Long userId = Long.parseLong(parts[2]);
-                String uri = parts[3];
-                String domain = resolveDomain(uri);
+                try {
+                    Long count = apiCountRedisTemplate.opsForValue().get(key);
+                    String[] parts = key.split(":");
 
-                String compositeKey = userId + "|" + domain;
-                redisMap.merge(compositeKey, count, Long::sum);
+                    if (parts.length < 4) {
+                        log.warn("⚠️ Invalid Redis key format: {}", key);
+                        continue;
+                    }
+
+                    Long userId = Long.parseLong(parts[2]);
+                    String uri = parts[3];
+                    String domain = resolveDomain(uri);
+
+                    String compositeKey = userId + "|" + domain;
+                    redisMap.merge(compositeKey, count != null ? count : 0L, Long::sum);
+
+                    log.info("Redis entry parsed -> userId={}, domain={}, count={}", userId, domain, count);
+                } catch (Exception e) {
+                    log.error("❌ Error parsing Redis key: {}", key, e);
+                }
             }
         }
+        log.info("▶ Redis map size = {}", redisMap.size());
 
         // 3. DB + Redis 합치기
         Map<Long, Map<String, Long>> usageMap = new HashMap<>();
@@ -105,36 +133,48 @@ public class ApiUsageService {
         for (Tuple tuple : dbTuples) {
             Long uid = tuple.get(user.id);
             String domain = tuple.get(userApiUsage.domain);
-            Long cnt = tuple.get(userApiUsage.count.sum());
+            Number cntNum = tuple.get(userApiUsage.count.sum());
+            Long cnt = cntNum != null ? cntNum.longValue() : 0L;
 
             usageMap.computeIfAbsent(uid, k -> new HashMap<>())
                     .merge(domain, cnt, Long::sum);
+
+            log.info("DB merged -> uid={}, domain={}, cnt={}", uid, domain, cnt);
         }
 
         // Redis 반영
         redisMap.forEach((key, cnt) -> {
             String[] parts = key.split("\\|");
+            if (parts.length < 2) {
+                log.warn("⚠️ Invalid compositeKey format: {}", key);
+                return;
+            }
             Long uid = Long.parseLong(parts[0]);
             String domain = parts[1];
 
             usageMap.computeIfAbsent(uid, k -> new HashMap<>())
                     .merge(domain, cnt, Long::sum);
+
+            log.info("Redis merged -> uid={}, domain={}, cnt={}", uid, domain, cnt);
         });
+
+        log.info("▶ UsageMap size = {}", usageMap.size());
 
         // 4. 유저별 최다 사용 도메인 pick
         List<GetUserMostDomainResponse> result = new ArrayList<>();
         usageMap.forEach((uid, domainCounts) -> {
-            // 최대 count 도메인 선택
             Map.Entry<String, Long> top = domainCounts.entrySet().stream()
                     .max(Map.Entry.comparingByValue())
                     .orElse(Map.entry("etc", 0L));
 
-            // User 엔티티에서 유저 정보 조회 (join 대신 필요시 캐시 가능)
             User u = jpaQueryFactory.selectFrom(user)
                     .where(user.id.eq(uid))
-                    .fetchOne();
+                    .fetchFirst(); // fetchOne → fetchFirst로 안정화
 
             if (u != null) {
+                log.info("Picked top domain -> uid={}, nickname={}, domain={}, cnt={}",
+                        u.getId(), u.getNickname(), top.getKey(), top.getValue());
+
                 result.add(new GetUserMostDomainResponse(
                         new UserInfoResponse(
                                 u.getId(),
@@ -142,10 +182,13 @@ public class ApiUsageService {
                                 u.getNickname(),
                                 u.getGender(),
                                 u.getLastLogin(),
-                                u.getCreatedAt()
+                                u.getCreatedAt(),
+                                u.getStatus()
                         ),
                         new MostUsedDomainResponse(top.getKey(), top.getValue())
                 ));
+            } else {
+                log.warn("⚠️ User not found for uid={}", uid);
             }
         });
 
@@ -159,6 +202,7 @@ public class ApiUsageService {
                 result.subList(start, end), pageable, result.size()
         );
 
+        log.info("▶ Final result size = {}, page={} pageSize={}", result.size(), request.getPage(), request.getPageSize());
         return ListResponse.from(page);
     }
 
@@ -166,35 +210,13 @@ public class ApiUsageService {
     public UserDomainStatsResponse getUserDomainStats(Long userId, LocalDate startDate) {
         LocalDate start = (startDate != null) ? startDate : LocalDate.now();
 
-        LocalDate thirtyDaysAgo = start.minusDays(30);
-        LocalDate sixtyDaysAgo = start.minusDays(60);
-
-        // --- 최근 30일 (DB: 오늘 제외) ---
-        List<DomainCountResponse> recentFromDb =
-                userApiUsageRepository.findDomainCounts(userId, thirtyDaysAgo, start.minusDays(1));
-
-        // Redis (오늘 데이터)
-        List<DomainCountResponse> todayFromRedis = loadDomainCountsFromRedis(userId, start);
-
-        // 합치기
-        Map<String, Long> mergedRecent = new HashMap<>();
-        Stream.concat(recentFromDb.stream(), todayFromRedis.stream())
-                .forEach(dto -> mergedRecent.merge(dto.getDomain(), dto.getCount(), Long::sum));
-
-        List<DomainCountResponse> recentDomainCounts = mergedRecent.entrySet().stream()
-                .map(e -> new DomainCountResponse(e.getKey(), e.getValue()))
-                .toList();
-        Long recentTotal = recentDomainCounts.stream().mapToLong(DomainCountResponse::getCount).sum();
-
-        // --- 이전 30일 ---
-        List<DomainCountResponse> prevDomainCounts =
-                userApiUsageRepository.findDomainCounts(userId, sixtyDaysAgo, thirtyDaysAgo.minusDays(1));
-        Long prevTotal = prevDomainCounts.stream().mapToLong(DomainCountResponse::getCount).sum();
+        MergedResult recent = mergeStats(userId, 30, start);
+        MergedResult ninety = mergeStats(userId, 90, start);
 
         return new UserDomainStatsResponse(
                 userId,
-                new PeriodDomainStatsResponse(recentTotal, recentDomainCounts),
-                new PeriodDomainStatsResponse(prevTotal, prevDomainCounts)
+                new PeriodDomainStatsResponse(recent.total(), recent.domainCounts()),
+                new PeriodDomainStatsResponse(ninety.total(), ninety.domainCounts())
         );
     }
 
@@ -241,11 +263,33 @@ public class ApiUsageService {
     }
 
     private String resolveDomain(String uri) {
-        // "/api/auth/login" → ["", "api", "auth", "login"]
         String[] parts = uri.split("/");
         if (parts.length >= 3) {
             return parts[2];
         }
         return "etc";
     }
+
+    private MergedResult mergeStats(Long userId, long days, LocalDate start) {
+        List<DomainCountResponse> fromDb =
+                userApiUsageRepository.findDomainCounts(userId, start.minusDays(days), start.minusDays(1));
+        List<DomainCountResponse> todayFromRedis = loadDomainCountsFromRedis(userId, start);
+
+        Map<String, Long> merged = new HashMap<>();
+        Stream.concat(fromDb.stream(), todayFromRedis.stream())
+                .forEach(dto -> merged.merge(dto.getDomain(), dto.getCount(), Long::sum));
+
+        long total = merged.values().stream().mapToLong(Long::longValue).sum();
+        log.info("▶ mergeStats total={}, merged={}", total, merged);
+
+        List<DomainCountResponse> domainCounts = FIXED_DOMAINS.stream()
+                .map(domain -> new DomainCountResponse(domain, merged.getOrDefault(domain, 0L), total))
+                .toList();
+
+        log.info("▶ merged map = {}", merged);
+        log.info("▶ total = {}", total);
+        return new MergedResult(total, domainCounts);
+    }
+
+    private record MergedResult(long total, List<DomainCountResponse> domainCounts) {}
 }
