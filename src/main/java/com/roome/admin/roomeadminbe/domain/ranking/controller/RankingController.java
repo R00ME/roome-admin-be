@@ -26,8 +26,8 @@ public class RankingController {
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping
-    public ResponseEntity<CommonResponse<List<UserRankingResponse>>> getTopRankings(@AuthenticationPrincipal AdminDetails adminDetails) {
-        List<UserRankingResponse> rankings = rankingService.getTopRankings();
-        return ofDataWithHttpStatus(rankings, HttpStatus.OK);
+    public ResponseEntity<List<UserRankingResponse>> getTopRankings(@AuthenticationPrincipal AdminDetails adminDetails) {
+        List<UserRankingResponse> rankings = rankingService.getRankingSnapshot();
+        return ResponseEntity.ok(rankings);
     }
 }

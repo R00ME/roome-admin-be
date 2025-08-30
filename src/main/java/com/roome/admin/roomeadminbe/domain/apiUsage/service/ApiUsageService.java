@@ -35,7 +35,7 @@ public class ApiUsageService {
     private final RedisTemplate<String, Long> apiCountRedisTemplate;
     private final JPAQueryFactory jpaQueryFactory;
     private static final List<String> FIXED_DOMAINS = List.of(
-            "cd", "book", "room", "points", "mates", "etc"
+            "cd", "book", "room", "roomVisit", "mates", "comment", "guestbook"
     );
 
     @Transactional(readOnly = true)
@@ -85,7 +85,6 @@ public class ApiUsageService {
                 .orderBy(user.id.asc(), userApiUsage.count.sum().desc())
                 .fetch();
 
-        log.info("▶ DB tuples size = {}", dbTuples.size());
         for (Tuple tuple : dbTuples) {
             log.info("DB tuple -> uid={}, email={}, domain={}, cnt={}",
                     tuple.get(user.id),
@@ -107,7 +106,6 @@ public class ApiUsageService {
                     String[] parts = key.split(":");
 
                     if (parts.length < 4) {
-                        log.warn("⚠️ Invalid Redis key format: {}", key);
                         continue;
                     }
 
@@ -117,14 +115,11 @@ public class ApiUsageService {
 
                     String compositeKey = userId + "|" + domain;
                     redisMap.merge(compositeKey, count != null ? count : 0L, Long::sum);
-
-                    log.info("Redis entry parsed -> userId={}, domain={}, count={}", userId, domain, count);
                 } catch (Exception e) {
-                    log.error("❌ Error parsing Redis key: {}", key, e);
+                    log.error("Error parsing Redis key: {}", key, e);
                 }
             }
         }
-        log.info("▶ Redis map size = {}", redisMap.size());
 
         // 3. DB + Redis 합치기
         Map<Long, Map<String, Long>> usageMap = new HashMap<>();
@@ -138,15 +133,13 @@ public class ApiUsageService {
 
             usageMap.computeIfAbsent(uid, k -> new HashMap<>())
                     .merge(domain, cnt, Long::sum);
-
-            log.info("DB merged -> uid={}, domain={}, cnt={}", uid, domain, cnt);
         }
 
         // Redis 반영
         redisMap.forEach((key, cnt) -> {
             String[] parts = key.split("\\|");
             if (parts.length < 2) {
-                log.warn("⚠️ Invalid compositeKey format: {}", key);
+                log.warn("Invalid compositeKey format: {}", key);
                 return;
             }
             Long uid = Long.parseLong(parts[0]);
@@ -157,8 +150,6 @@ public class ApiUsageService {
 
             log.info("Redis merged -> uid={}, domain={}, cnt={}", uid, domain, cnt);
         });
-
-        log.info("▶ UsageMap size = {}", usageMap.size());
 
         // 4. 유저별 최다 사용 도메인 pick
         List<GetUserMostDomainResponse> result = new ArrayList<>();
@@ -188,7 +179,7 @@ public class ApiUsageService {
                         new MostUsedDomainResponse(top.getKey(), top.getValue())
                 ));
             } else {
-                log.warn("⚠️ User not found for uid={}", uid);
+                log.warn("User not found for uid={}", uid);
             }
         });
 
@@ -202,7 +193,6 @@ public class ApiUsageService {
                 result.subList(start, end), pageable, result.size()
         );
 
-        log.info("▶ Final result size = {}, page={} pageSize={}", result.size(), request.getPage(), request.getPageSize());
         return ListResponse.from(page);
     }
 
@@ -272,22 +262,19 @@ public class ApiUsageService {
 
     private MergedResult mergeStats(Long userId, long days, LocalDate start) {
         List<DomainCountResponse> fromDb =
-                userApiUsageRepository.findDomainCounts(userId, start.minusDays(days), start.minusDays(1));
-        List<DomainCountResponse> todayFromRedis = loadDomainCountsFromRedis(userId, start);
+                userApiUsageRepository.findDomainCounts(userId, start.minusDays(days), start);
 
+        List<DomainCountResponse> todayFromRedis = loadDomainCountsFromRedis(userId, start);
         Map<String, Long> merged = new HashMap<>();
         Stream.concat(fromDb.stream(), todayFromRedis.stream())
                 .forEach(dto -> merged.merge(dto.getDomain(), dto.getCount(), Long::sum));
 
         long total = merged.values().stream().mapToLong(Long::longValue).sum();
-        log.info("▶ mergeStats total={}, merged={}", total, merged);
 
         List<DomainCountResponse> domainCounts = FIXED_DOMAINS.stream()
                 .map(domain -> new DomainCountResponse(domain, merged.getOrDefault(domain, 0L), total))
                 .toList();
 
-        log.info("▶ merged map = {}", merged);
-        log.info("▶ total = {}", total);
         return new MergedResult(total, domainCounts);
     }
 
