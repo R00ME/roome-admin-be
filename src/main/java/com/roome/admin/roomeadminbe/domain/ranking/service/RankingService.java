@@ -19,11 +19,11 @@ import java.util.*;
 public class RankingService {
 
 
+    private static final String RANKING_KEY = "user:ranking";
+    private static final String PREV_KEY = "user:ranking:prev";
     @Qualifier("rankingRedisTemplate")
     private final RedisTemplate<String, String> rankingRedisTemplate;
     private final UserRepository userRepository;
-    private static final String RANKING_KEY = "user:ranking";
-    private static final String PREV_KEY = "user:ranking:prev";
 
     @Transactional(readOnly = true)
     public List<UserRankingResponse> getRankingSnapshot() {

@@ -3,7 +3,6 @@ package com.roome.admin.roomeadminbe.global.config;
 import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAccessDeniedHandler;
 import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAuthenticationEntryPoint;
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

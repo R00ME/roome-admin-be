@@ -28,6 +28,7 @@ public class NotificationService {
 
         return notificationRepository.save(notification);
     }
+
     public List<NotificationResponseDto> getAllNotifications() {
         return notificationRepository.findAll().stream()
                 .map(NotificationResponseDto::new)

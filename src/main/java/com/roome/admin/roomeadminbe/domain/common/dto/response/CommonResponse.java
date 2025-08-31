@@ -22,13 +22,14 @@ public class CommonResponse<T> {
                 .build();
     }
 
-    public static <T> CommonResponse<T> error(ErrorCode errorCode){
+    public static <T> CommonResponse<T> error(ErrorCode errorCode) {
         return CommonResponse.<T>builder()
                 .success(false)
                 .code(errorCode.name())
                 .message(errorCode.getMessage())
                 .build();
     }
+
     public static <T> ResponseEntity<CommonResponse<T>> ofDataWithHttpStatus(T data, HttpStatus httpStatus) {
         return ResponseEntity.status(httpStatus).body(success(data));
     }

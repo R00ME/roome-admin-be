@@ -30,13 +30,13 @@ import static com.roome.admin.roomeadminbe.domain.common.entity.QUser.user;
 @Slf4j
 public class ApiUsageService {
 
+    private static final List<String> FIXED_DOMAINS = List.of(
+            "cd", "book", "room", "roomVisit", "mates", "comment", "guestbook"
+    );
     private final UserApiUsageRepository userApiUsageRepository;
     @Qualifier("apiCountRedisTemplate")
     private final RedisTemplate<String, Long> apiCountRedisTemplate;
     private final JPAQueryFactory jpaQueryFactory;
-    private static final List<String> FIXED_DOMAINS = List.of(
-            "cd", "book", "room", "roomVisit", "mates", "comment", "guestbook"
-    );
 
     @Transactional(readOnly = true)
     public ListResponse<ApiUsageResponse> getApiUsageList(ApiUsageSearchRequest request) {
@@ -278,5 +278,6 @@ public class ApiUsageService {
         return new MergedResult(total, domainCounts);
     }
 
-    private record MergedResult(long total, List<DomainCountResponse> domainCounts) {}
+    private record MergedResult(long total, List<DomainCountResponse> domainCounts) {
+    }
 }

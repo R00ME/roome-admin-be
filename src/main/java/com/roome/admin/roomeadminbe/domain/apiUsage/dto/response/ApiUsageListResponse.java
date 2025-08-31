@@ -8,5 +8,5 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class ApiUsageListResponse extends ListResponse<ApiUsageResponse>{
+public class ApiUsageListResponse extends ListResponse<ApiUsageResponse> {
 }
