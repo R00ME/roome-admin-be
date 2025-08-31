@@ -16,6 +16,7 @@ public class User {
     private String name;
     private String nickname;
     private String profileImage;
+    @Enumerated(EnumType.STRING)
     private Gender gender;
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;

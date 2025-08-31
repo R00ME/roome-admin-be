@@ -37,7 +37,7 @@ public class ApiUsageController {
     }
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
-    @GetMapping("/most-used-domain")
+    @GetMapping("/recent-user-activity")
     public ResponseEntity<CommonResponse<ListResponse<GetUserMostDomainResponse>>> getUsersMostUsedDomain(
             @ModelAttribute UserMostUsedDomainSearchRequest request) {
 
