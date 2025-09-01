@@ -28,7 +28,6 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 public class ApiUsageController {
 
     private final ApiUsageService apiUsageService;
-//    private final UserStatisticsTupleService userStatisticsTupleService;
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping
@@ -43,18 +42,6 @@ public class ApiUsageController {
 
         return ofDataWithHttpStatus(apiUsageService.getUsersMostUsedDomain(request), HttpStatus.OK);
     }
-
-//    // 랭킹 유저 10명 + 사용자 별 가장 많이 사용한 도메인
-//    @PreAuthorize("hasRole('OPERATION_MANAGER')")
-//    @GetMapping("/all")
-//    public ResponseEntity<CommonResponse<UserDomainAndRankingResponse>> getDomainAndRanking(
-//            @ModelAttribute UserMostUsedDomainSearchRequest request
-//    ) {
-//        log.info("UserMostUsedDomainSearchRequest = {}", request);
-//
-//        UserDomainAndRankingResponse response = userStatisticsTupleService.getDomainAndRanking(request);
-//        return ofDataWithHttpStatus(response, HttpStatus.OK);
-//    }
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping("/{userId}/user-domain-stats")

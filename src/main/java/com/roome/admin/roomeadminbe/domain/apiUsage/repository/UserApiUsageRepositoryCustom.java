@@ -14,5 +14,4 @@ public interface UserApiUsageRepositoryCustom {
     Page<ApiUsageResponse> findAllBeforeDate(ApiUsageSearchRequest apiUsageSearchRequest, Pageable pageable);
 
     List<DomainCountResponse> findDomainCounts(Long userId, LocalDate from, LocalDate to);
-//    Page<GetUserMostDomainResponse> findUsersWithMostUsedDomain(UserMostUsedDomainSearchRequest userMostUsedDomainSearchRequest, Pageable pageable);
 }

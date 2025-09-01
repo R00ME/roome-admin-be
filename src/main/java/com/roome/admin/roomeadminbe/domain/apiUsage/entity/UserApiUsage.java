@@ -1,6 +1,7 @@
 package com.roome.admin.roomeadminbe.domain.apiUsage.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ public class UserApiUsage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @NotNull
     private Long userId;
     private String domain;
     private String apiUri;
