@@ -39,4 +39,8 @@ public class Notification {
     @Column(name = "category", nullable = false)
     private NotificationCategory category;
 
+//    //admin 참조하도록 설정
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "admin_id", nullable = false)
+//    private Admin admin;
 }
