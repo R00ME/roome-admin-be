@@ -6,15 +6,18 @@ import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationRequestD
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationResponseDto;
 import com.roome.admin.roomeadminbe.domain.notification.service.NotificationService;
 import com.roome.admin.roomeadminbe.domain.notification.entity.Notification;
+import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/notifications")
@@ -26,20 +29,15 @@ public class NotificationController {
     //알림 생성(작성자 본인에게만 생성 + 실시간 푸시)
     @PostMapping
     public ResponseEntity<NotificationResponseDto> createNotification(
-            @RequestBody NotificationRequestDto requestDto){
+            @AuthenticationPrincipal AdminDetails adminDetails, @RequestBody NotificationRequestDto requestDto){
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = (auth != null ? auth.getName() : null);
-        if (email == null) throw new RuntimeException("인증 정보가 없습니다.");
+                if(adminDetails == null) throw new RuntimeException("인증 정보가 없습니다.");
 
-        Admin me = adminRepository.findByAdminEmail(email)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-
-        // 클라이언트로부터 온 adminId는 무시하고, 서버에서 본인 ID로 강제 주입
-        requestDto.setAdminId(me.getAdminId());
+        requestDto.setAdminId(adminDetails.getAdminId());
 
         Notification saved = notificationService.createNotification(requestDto);
         return ResponseEntity.ok(new NotificationResponseDto(saved));
+
     }
 
 
@@ -49,21 +47,25 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getAllNotifications());
     }
 
-    /** 3) 특정 관리자 알림 조회(기존 호환용) */
+    /** 3) 특정 관리자 알림 조회 */
     @GetMapping("/{adminId}")
     public ResponseEntity<List<NotificationResponseDto>> getNotificationsByAdminId(
             @PathVariable Long adminId) {
         return ResponseEntity.ok(notificationService.getNotificationsByAdminId(adminId));
     }
 
-    /** 4) 내 알림함 조회(프론트에 권장) */
+    /** 4) 내 알림함 조회 */
     @GetMapping("/me")
-    public ResponseEntity<List<NotificationResponseDto>> getMyNotifications() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = (auth != null ? auth.getName() : null);
-        if (email == null) throw new RuntimeException("인증 정보가 없습니다.");
+    public ResponseEntity<Map<String, Object>> getMyNotifications(
+            @AuthenticationPrincipal AdminDetails adminDetails
+    ) {
 
-        return ResponseEntity.ok(notificationService.getMyNotificationsByEmail(email));
+        if (adminDetails == null) {
+            throw new RuntimeException("인증 정보가 없습니다.");
+        }
+
+        String email = adminDetails.getUsername();
+        return ResponseEntity.ok(notificationService.getMineGroupedWithSummary(email));
     }
 
     /** 5) SSE 구독: 본인 채널만 구독 가능 */
@@ -83,16 +85,45 @@ public class NotificationController {
         // 등록 + INIT 전송 + 타임아웃/정리는 서비스에서 처리
         return notificationService.subscribe(adminId);
     }
+    //전체 읽음 조회
+    @PutMapping("/allread")
+    public ResponseEntity<Map<String, String>> markAllAsRead(
+            @RequestBody Map<String, Long> body,
+            @AuthenticationPrincipal AdminDetails adminDetails
+    ){
+        if (adminDetails == null) throw new RuntimeException("인증 정보가 없습니다.");
 
-    // (선택) 구독 간편 버전: 파라미터 없이 '내 채널' 자동 구독하고 싶다면 아래를 사용
-    // @GetMapping(value = "/subscribe/me", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    // public SseEmitter subscribeMe() {
-    //     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    //     String email = (auth != null ? auth.getName() : null);
-    //     if (email == null) throw new RuntimeException("인증 정보가 없습니다.");
-    //
-    //     Admin me = adminRepository.findByAdminEmail(email)
-    //             .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-    //     return notificationService.subscribe(me.getAdminId());
-    // }
+        Long adminId = body.get("adminId");
+        String message = notificationService.markAllAsReadByAdminId(adminId);
+
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
+    //단일 읽음 조회
+   @PatchMapping("/{notificationId}/read")
+    public ResponseEntity<Map<String, String>> markAsRead(
+            @PathVariable Long notificationId,
+            @AuthenticationPrincipal AdminDetails adminDetails
+   ){
+        if (adminDetails == null){
+            throw new RuntimeException("인증 정보가 없습니다.");
+        }
+        String email = adminDetails.getUsername();
+        notificationService.markAsRead(notificationId, email);
+        return ResponseEntity.ok(Map.of("message","알림이 읽음 처리되었습니다."));
+   }
+
+   //안읽음조회
+   @GetMapping("/unread")
+    public Map<String, Object> getUnread(@AuthenticationPrincipal AdminDetails adminDetails){
+        String email = adminDetails.getUsername();
+        return notificationService.getUnreadGrouped(email);
+   }
+
+   //긴급 조회
+    @GetMapping("/urgent")
+    public Map<String, Object> getUrgent(@AuthenticationPrincipal AdminDetails adminDetails){
+        String email = adminDetails.getUsername();
+        return notificationService.getUrgentGrouped(email);
+    }
 }

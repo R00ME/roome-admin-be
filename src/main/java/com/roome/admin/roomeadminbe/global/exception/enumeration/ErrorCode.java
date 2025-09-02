@@ -7,7 +7,8 @@ public enum ErrorCode {
     USER_NOT_FOUND("사용자 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     PASSWORD_NOT_MATCHES("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
     INVALID_INPUT_VALUE("유효하지 않은 요청값입니다.", HttpStatus.BAD_REQUEST),
-    INVALID_JSON("json 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST);
+    INVALID_JSON("json 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST),
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND );
 
     private final String message;
     private final HttpStatus status;
