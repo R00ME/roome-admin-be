@@ -56,6 +56,8 @@ dependencies {
     // GA
     implementation(platform("com.google.cloud:libraries-bom:latest.release"))
     implementation("com.google.analytics:google-analytics-data:0.82.0")
+    implementation "com.google.auth:google-auth-library-oauth2-http:1.20.0"
+    testImplementation "com.fasterxml.jackson.core:jackson-databind"
 
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 }
