@@ -9,8 +9,9 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ReadAdminInfoResponse {
+    private long adminId;
+    private AdminRole adminRole;
     private String adminEmail;
     private String username;
     private String phoneNumber;
-    private AdminRole adminRole;
 }
