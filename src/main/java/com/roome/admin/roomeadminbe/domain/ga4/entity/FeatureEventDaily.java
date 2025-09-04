@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name="ga_event_daily")
 @Getter
-@Setter
 public class FeatureEventDaily {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

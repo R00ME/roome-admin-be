@@ -17,7 +17,7 @@ public class GaEventCollectorService {
     private final BetaAnalyticsDataClient analyticsDataClient;
     private final GaEventDailyRepository dailyRepository;
 
-    @Value("${ga.property-id}")
+    @Value("${ga4.property-id}")
     private String propertyId;
 
     /**
