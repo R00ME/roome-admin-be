@@ -30,6 +30,7 @@ public class AdminService {
     public ReadAdminInfoResponse readInfo(String adminEmail) {
         Admin admin = existAdmin(adminEmail);
         return ReadAdminInfoResponse.builder()
+                .adminId(admin.getAdminId())
                 .adminEmail(admin.getAdminEmail())
                 .username(admin.getAdminName())
                 .phoneNumber(admin.getPhoneNumber())
