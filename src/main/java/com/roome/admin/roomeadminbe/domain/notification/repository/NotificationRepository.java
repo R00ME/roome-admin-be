@@ -15,7 +15,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     UPDATE bo_notifications n
     JOIN admin_notification an ON an.notification_id = n.notification_id
     SET n.is_read = 1
-    WHERE an.admin_id = :adminId AND n.is_read = 0
+    WHERE an.admin_id = :adminId
     """, nativeQuery = true)
     int markAllAsReadByAdminId(@Param("adminId") Long adminId);
 
@@ -27,11 +27,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     WHERE an.admin_id = :adminId AND n.is_read = 0
     """, nativeQuery = true)
     long countUnreadByAdminId(@Param("adminId") Long adminId);
-
-
-    List<Notification> findByIsReadFalseOrderByCreatedAtDesc();
-
-    List<Notification> findByIsUrgentTrueOrderByCreatedAtDesc();
 
     List<Notification> findAllByOrderByCreatedAtDesc();
     // 스키마 정리되면 다음과 같은 쿼리 메서드 추가 예정:
