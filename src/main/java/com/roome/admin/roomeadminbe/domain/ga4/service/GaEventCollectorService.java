@@ -2,7 +2,6 @@ package com.roome.admin.roomeadminbe.domain.ga4.service;
 
 import com.google.analytics.data.v1beta.*;
 import com.roome.admin.roomeadminbe.domain.ga4.entity.GaEventDaily;
-import com.roome.admin.roomeadminbe.domain.ga4.repository.GaEventDailyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

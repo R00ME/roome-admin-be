@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.analytics.data.v1beta.*;
 import com.roome.admin.roomeadminbe.domain.ga4.Ga4Properties;
 import com.roome.admin.roomeadminbe.domain.ga4.entity.GaEventRaw;
-import com.roome.admin.roomeadminbe.domain.ga4.repository.GaEventRawRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

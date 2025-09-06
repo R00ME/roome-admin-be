@@ -1,7 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.ga4.service;
 
 import com.roome.admin.roomeadminbe.domain.ga4.dto.EventDailyDto;
-import com.roome.admin.roomeadminbe.domain.ga4.repository.FeatureEventDailyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
