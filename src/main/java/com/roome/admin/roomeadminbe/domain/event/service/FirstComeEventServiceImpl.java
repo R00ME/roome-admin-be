@@ -5,6 +5,7 @@ import com.roome.admin.roomeadminbe.domain.common.dto.request.ListRequest;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.domain.event.dto.EventListResponseDTO;
 import com.roome.admin.roomeadminbe.domain.event.dto.EventRegisterRequestDTO;
+import com.roome.admin.roomeadminbe.domain.event.entity.EventStatus;
 import com.roome.admin.roomeadminbe.domain.event.entity.FirstComeEvent;
 import com.roome.admin.roomeadminbe.domain.event.repository.FirstComeEventRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,7 @@ public class FirstComeEventServiceImpl implements FirstComeEventService{
 						.eventUploadTime(eventRegisterRequestDTO.getEventUploadTime())
 						.eventReceiverTarget(eventRegisterRequestDTO.getEventReceiverTarget())
 						.eventWriter(userName)
+						.status(EventStatus.NOTYET)
 						.build()
 		);
 	}

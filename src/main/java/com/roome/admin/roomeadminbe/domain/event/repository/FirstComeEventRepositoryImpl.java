@@ -33,7 +33,8 @@ public class FirstComeEventRepositoryImpl implements FirstComeEventRepositoryCus
                                 firstComeEvent.eventUploadTime,
                                 firstComeEvent.eventContent,
                                 firstComeEvent.eventTime,
-                                firstComeEvent.eventWriter)
+                                firstComeEvent.eventWriter,
+                                firstComeEvent.status)
                 )
                 .from(firstComeEvent)
                 .orderBy(firstComeEvent.id.desc())
