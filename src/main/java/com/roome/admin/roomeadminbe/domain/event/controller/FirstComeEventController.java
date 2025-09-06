@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/events")
+@RequestMapping("/api/admin/events")
 @RequiredArgsConstructor
 public class FirstComeEventController {
 

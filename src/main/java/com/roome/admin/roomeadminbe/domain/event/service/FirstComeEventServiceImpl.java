@@ -20,6 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FirstComeEventServiceImpl implements FirstComeEventService{
 
 	private final FirstComeEventRepository firstComeEventRepository;
