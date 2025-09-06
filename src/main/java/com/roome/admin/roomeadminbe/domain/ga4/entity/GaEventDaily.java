@@ -8,27 +8,24 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder
 @Table(name = "ga_event_daily")
 public class GaEventDaily {
-    @Id @GeneratedValue(strategy =  GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String eventName;
-    private String batchId;
+    private LocalDate statDate;   // 수집 기준 날짜
+    private String eventName;     // 이벤트 이름
+    private String customUserId;  // 프론트에서 넘긴 사용자 식별자
+    private String featureName;
+    private String sessionId;     // 세션 ID (필요시 customSessionId 같은 이름 사용)
 
-    @Column(name = "user_id")
-    private String userId;
+    private Long eventCount;      // 이벤트 발생 횟수
+    private Long engagementDuration; // userEngagementDuration 합산값
 
-    private String sessionId;
-
-    private Long sessionCount;
-    private Long uniqueFeatures;
-    private Long uniqueUsers;
-
-    private LocalDate eventTime;
-    private LocalDateTime collectedAt;
+    private LocalDateTime collectedAt; // 백엔드에서 수집 시각
 }
-

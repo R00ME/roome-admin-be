@@ -12,12 +12,12 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class GaDailyJob {
 
-    private final GaEventCollectorService gaEventCollector;
+    private final GaEventCollectorService gaEventService;
 
     // 매일 새벽 2시(KST) 전일 데이터 수집
     @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Seoul")
     public void collectYesterday() {
         LocalDate yesterday = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
-        gaEventCollector.collectDailyEvents(yesterday);
+        gaEventService.collectDailyEvents(yesterday);
     }
 }
