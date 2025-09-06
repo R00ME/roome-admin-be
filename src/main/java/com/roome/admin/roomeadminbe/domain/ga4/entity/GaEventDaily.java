@@ -7,27 +7,25 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "ga_event_daily")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+@Table(name = "ga_event_daily")
 public class GaEventDaily {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue
     private Long id;
 
-    @Column(nullable=false) private LocalDate statDate;
-    @Column(nullable=false) private String eventName;
-    @Column private String featureName;
+    private LocalDate statDate;
+    private String eventName;
+    private String batchId;
 
-    @Column private Long eventCount;
-    @Column private Long durationMsSum;
-    @Column private Long uniqueUsersSum;
-    @Column private Long sessionCountSum;
-    @Column private Long rewardPointsSum;
+    @Column(name = "user_id")
+    private String userId;   // 예약어 아니면 그대로 저장
 
-    @Column(nullable=false) private LocalDateTime collectedAt;
+    private String sessionId;
+
+    private int sessionCount;
+    private int uniqueFeatures;
+    private int uniqueUsers;
+
+    private LocalDateTime collectedAt;
 }
 
