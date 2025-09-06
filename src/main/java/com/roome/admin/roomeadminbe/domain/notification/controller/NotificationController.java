@@ -6,6 +6,8 @@ import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationRequestD
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationResponseDto;
 import com.roome.admin.roomeadminbe.domain.notification.service.NotificationService;
 import com.roome.admin.roomeadminbe.domain.notification.entity.Notification;
+import com.roome.admin.roomeadminbe.global.exception.BusinessException;
+import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -33,10 +35,10 @@ public class NotificationController {
 
                 if(adminDetails == null) throw new RuntimeException("인증 정보가 없습니다.");
 
-        requestDto.setAdminId(adminDetails.getAdminId());
+        String email = adminDetails.getUsername();
 
-        Notification saved = notificationService.createNotification(requestDto);
-        return ResponseEntity.ok(new NotificationResponseDto(saved));
+        NotificationResponseDto created = notificationService.createForMe(email, requestDto);
+        return ResponseEntity.status(201).body(created);
 
     }
 
@@ -85,16 +87,15 @@ public class NotificationController {
         // 등록 + INIT 전송 + 타임아웃/정리는 서비스에서 처리
         return notificationService.subscribe(adminId);
     }
-    //전체 읽음 조회
+    //전체 읽음 처리
     @PutMapping("/allread")
     public ResponseEntity<Map<String, String>> markAllAsRead(
-            @RequestBody Map<String, Long> body,
             @AuthenticationPrincipal AdminDetails adminDetails
     ){
-        if (adminDetails == null) throw new RuntimeException("인증 정보가 없습니다.");
+        if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
+        String email = adminDetails.getUsername();
 
-        Long adminId = body.get("adminId");
-        String message = notificationService.markAllAsReadByAdminId(adminId);
+        String message = notificationService.markAllAsReadByEmail(email);
 
         return ResponseEntity.ok(Map.of("message", message));
     }
