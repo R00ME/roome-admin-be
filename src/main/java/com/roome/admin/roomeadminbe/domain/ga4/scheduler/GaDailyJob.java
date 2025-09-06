@@ -19,7 +19,7 @@ public class GaDailyJob {
     private final GaEventCollectorService gaEventCollector; // Daily 집계 수집
 
     // 매일 07:00 KST 전일 데이터 수집
-    @Scheduled(cron = "0 0 7 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Seoul")
     public void collectYesterday() {
         LocalDate yesterday = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
         log.info("[GA Scheduler] collectYesterday 시작 - targetDate={}", yesterday);
@@ -34,7 +34,7 @@ public class GaDailyJob {
     }
 
     // 매일 07:10 KST 최근 3일 재수집(보고 지연 대비, 업서트 사용)
-    @Scheduled(cron = "0 10 7 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Seoul")
     public void reCollectLast3Days() {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         log.info("[GA Scheduler] reCollectLast3Days 시작 - 기준일={}", today);

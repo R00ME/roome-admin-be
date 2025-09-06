@@ -21,7 +21,7 @@ public class GaIngestService {
     private static final List<String> DIM_CANDIDATES = List.of(
             "eventName",
             "customEvent:feature_name",
-            "customEvent:user_id",
+            "userId",
             "customEvent:session_id",
             "customEvent:batch_id",
             "customEvent:custom_parameter_1",
@@ -101,7 +101,7 @@ public class GaIngestService {
 
         String eventName = getDim(r, dIdx, "eventName");
         String featureName = getDim(r, dIdx, "customEvent:feature_name");
-        String userId = getDim(r, dIdx, "customEvent:user_id");
+        String userId = getDim(r, dIdx, "userId");
         String sessionId = getDim(r, dIdx, "customEvent:session_id");
         String batchId = getDim(r, dIdx, "customEvent:batch_id");
 
