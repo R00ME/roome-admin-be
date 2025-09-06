@@ -10,6 +10,12 @@ import java.util.List;
 
 public interface AdminNotificationRepository extends JpaRepository<AdminNotification, Long> {
 
-    @Query("SELECT an.notification FROM AdminNotification an WHERE an.admin.adminId = :adminId")
-    List<Notification> findNotificationsByAdminId(@Param("adminId") Long adminId);
+    @Query("""
+    SELECT n
+    FROM AdminNotification an
+    JOIN an.notification n
+    WHERE an.admin.adminId = :adminId
+    ORDER by n.createdAt desc, n.notificationId desc
+    """)
+    List<Notification> findNotificationsByAdminIdOrderByCreatedAtDesc(@Param("adminId") Long adminId);
 }

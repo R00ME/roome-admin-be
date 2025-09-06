@@ -67,64 +67,17 @@ public class NotificationService {
         }
     }
 
-    //*******조회********
-    // 알림 전체 조회
-    public List<NotificationResponseDto> getAllNotifications() {
-        List<Notification> notifications = notificationRepository.findAll();
-        return notifications.stream()
-                .map(NotificationResponseDto::new)
-                .collect(Collectors.toList());
-    }
-
-    // 특정 관리자에게 온 알림 전부
-    public List<NotificationResponseDto> getNotificationsByAdminId(Long adminId) {
-        List<Notification> notifications = adminNotificationRepository.findNotificationsByAdminId(adminId);
-        return notifications.stream()
-                .map(NotificationResponseDto::new)
-                .collect(Collectors.toList());
-    }
-    // "내 알림 전부" 조회
-    public List<NotificationResponseDto> getMyNotificationsByEmail(String email) {
-        Admin me = adminRepository.findByAdminEmail(email)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-        return getNotificationsByAdminId(me.getAdminId());
-    }
-
-    // 안 읽은 조회 목록 (관리자 범위)
-    @Transactional(readOnly = true)
-    public Map<String, Object> getUnreadGrouped(String adminEmail){
-        Admin me = adminRepository.findByAdminEmail(adminEmail)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-        // 관리자 범위로 가져온 뒤, 메모리에서 unread만 필터
-        List<Notification> list = adminNotificationRepository.findNotificationsByAdminId(me.getAdminId())
-                .stream().filter(n -> !n.isRead())
-                .sorted(Comparator.comparing(Notification::getCreatedAt).reversed())
-                .toList();
-        return toGroupedResponse(list);
-    }
-
+    //*********공통 : 정렬/타입존 유틸
+    private static final ZoneOffset UTC = ZoneOffset.UTC;
     private static final DateTimeFormatter ISO_IN_UTC = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-    private Map<String, Object> toGroupedResponse(List<Notification> list){
-        //totalCount
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("totalCount", list.size());
+    /** createdAt desc, tie-break notificationId desc */
+    private static final Comparator<Notification> LATEST_FIRST =
+            Comparator.comparing(Notification::getCreatedAt).reversed()
+                    .thenComparing(Comparator.comparing(Notification::getNotificationId).reversed());
 
-        //날짜별 그룹
-        Map<String, List<Map<String, Object>>> grouped = list.stream()
-                .map(this::toItem)
-                .collect(Collectors.groupingBy(
-                    m -> (String) m.get("dateKey"),
-                    LinkedHashMap::new,
-                    Collectors.toList()
-                ));
-        //response 구조로 넣기
-        grouped.forEach((date,items) -> {
-            items.forEach(it -> it.remove("dateKey"));
-            result.put(date,items);
-        });
-
-        return result;
+    private List<Notification> sortLatest(List<Notification> list) {
+        return list.stream().sorted(LATEST_FIRST).toList();
     }
 
     private Map<String, Object> toItem(Notification n){
@@ -135,35 +88,52 @@ public class NotificationService {
         m.put("isRead", n.isRead());
         m.put("isUrgent", n.isUrgent());
 
+        // 표시와 그룹 키 모두 UTC 기준으로 통일
         String ts = n.getCreatedAt().atOffset(ZoneOffset.UTC).format(ISO_IN_UTC);
         m.put("timestamp", ts);
-
-        m.put("dateKey", n.getCreatedAt().toLocalDate().toString());
+        m.put("dateKey",n.getCreatedAt().atOffset(UTC).toLocalDate().toString());
         return m;
     }
 
-    // 긴급 목록 조회 (관리자 범위 + urgent만)
-    @Transactional(readOnly = true)
-    public Map<String, Object> getUrgentGrouped(String adminEmail){
-        Admin me = adminRepository.findByAdminEmail(adminEmail)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-        //나에게 배정된 알림 중 "긴급"만!
-        List<Notification> list = adminNotificationRepository.findNotificationsByAdminId(me.getAdminId())
-                .stream()
-                .filter(Notification::isUrgent) // 긴급 "전체"
-        //        .stream().filter(n -> n.isUrgent())//이건 미읽음 긴급
-                .sorted(Comparator.comparing(Notification::getCreatedAt).reversed())
-                .toList();
-        return toGroupedResponse(list);
+    private Map<String, Object> toGroupedResponse(List<Notification> list){
+        //totalCount
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("totalCount", list.size());
+
+        //날짜별 그룹
+        Map<String, List<Map<String, Object>>> grouped = groupByDate(list);
+        grouped.forEach((date, items) -> {
+            items.forEach(it -> it.remove("dateKey"));
+            result.put(date, items);
+        });
+        return result;
     }
 
-    //내 알림함 구분(전체,안읽음,긴급안읽음)
-    @Transactional (readOnly = true)
-    public Map<String, Object> getMineGroupedWithSummary(String adminEmail){
-        //1) 전체목록
-        List<Notification> all = notificationRepository.findAllByOrderByCreatedAtDesc();
+    //*******조회********
+    // 알림 전체 조회
+    public List<NotificationResponseDto> getAllNotifications() {
+        return sortLatest(notificationRepository.findAll())
+                .stream().map(NotificationResponseDto::new).toList();
+    }
 
-        //2) 카운트 먼저 계산
+    // 특정 관리자에게 온 알림 전부
+    public List<NotificationResponseDto> getNotificationsByAdminId(Long adminId) {
+        return adminNotificationRepository
+                .findNotificationsByAdminIdOrderByCreatedAtDesc(adminId)
+                .stream().map(NotificationResponseDto::new)
+                .toList();
+    }
+
+    // "내 알림 전부" 조회 (알림한)
+    public Map<String, Object> getMineGroupedWithSummary(String adminEmail){
+        Admin me = adminRepository.findByAdminEmail(adminEmail)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
+
+        //1)전체목록
+        List<Notification> all = adminNotificationRepository
+                .findNotificationsByAdminIdOrderByCreatedAtDesc(me.getAdminId());
+
+        //2)카운트 먼저 계산
         long total = all.size();
         long unread = all.stream().filter(n -> !n.isRead()).count();
         long urgentUnread = all.stream().filter(n -> !n.isRead() && n.isUrgent()).count();
@@ -176,13 +146,25 @@ public class NotificationService {
 
         //4) 날짜별 그룹 만든 후 카운트 뒤에 붙이기
         Map<String, List<Map<String, Object>>> grouped = groupByDate(all);
-        //toItem에서 내부용으로 넣은 dateKey 제거하기
         grouped.forEach((date, items) -> {
             items.forEach(it -> it.remove("dateKey"));
             result.put(date, items);
         });
-
         return result;
+    }
+
+    // 안 읽은 조회 목록 (관리자 범위)
+    @Transactional(readOnly = true)
+    public Map<String, Object> getUnreadGrouped(String adminEmail){
+        Admin me = adminRepository.findByAdminEmail(adminEmail)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
+        // 관리자 범위로 가져온 뒤, 메모리에서 unread만 필터
+        List<Notification> list = adminNotificationRepository
+                .findNotificationsByAdminIdOrderByCreatedAtDesc(me.getAdminId())
+                .stream().filter(n -> !n.isRead())
+                .toList();
+
+        return toGroupedResponse(list);
     }
 
 
@@ -191,99 +173,85 @@ public class NotificationService {
         return list.stream()
                 .map(this::toItem)
                 .collect(Collectors.groupingBy(
-                        m -> (String) m.get("dateKey"),
+                        it-> (String) it.get("dateKey"),
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
     }
 
-    // *****생성(작성자)*****
-    // DTO(adminId 포함)를 받아 한 명에게 생성 + 즉시 푸시
-    public Notification createNotification(NotificationRequestDto dto) {
-        Admin admin = adminRepository.findById(dto.getAdminId())
+    // 긴급 목록 조회 (관리자 범위 + urgent만)
+    @Transactional(readOnly = true)
+    public Map<String, Object> getUrgentGrouped(String adminEmail){
+        Admin me = adminRepository.findByAdminEmail(adminEmail)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
 
+        List<Notification> list = adminNotificationRepository
+                .findNotificationsByAdminIdOrderByCreatedAtDesc(me.getAdminId())
+                .stream().filter(Notification::isUrgent)
+                .toList();
+
+        return toGroupedResponse(list);
+    }
+
+    // *****생성(작성자)*****
+    @Transactional
+    public NotificationResponseDto createForMe(String email, NotificationRequestDto req){
+        Admin me = adminRepository.findByAdminEmail(email)
+                .orElseThrow(()-> new RuntimeException("존재하지 않는 관리자입니다."));
+
         Notification notification = Notification.builder()
-                .notificationTitle(dto.getNotificationTitle())
-                .notificationContent(dto.getNotificationContent())
-                .category(dto.getCategory())
-                .isUrgent(dto.isUrgent())
+                .notificationTitle(req.getNotificationTitle())
+                .notificationContent(req.getNotificationContent())
+                .category(req.getCategory())
+                .isUrgent(Boolean.TRUE.equals(req.isUrgent()))
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         Notification saved = notificationRepository.save(notification);
 
-        AdminNotification adminNotification = AdminNotification.builder()
-                .admin(admin)
-                .notification(saved)
-                .build();
-        adminNotificationRepository.save(adminNotification);
+        adminNotificationRepository.save(
+                AdminNotification.builder().admin(me).notification(saved).build()
+        );
 
-        sendToClient(admin.getAdminId(), new NotificationResponseDto(saved));
-        return saved;
+        sendToClient(me.getAdminId(), new NotificationResponseDto(saved));
+        return new NotificationResponseDto(saved);
     }
 
-    // (오버로드) 컨트롤러/도메인에서 Admin 객체를 이미 갖고 있을 때
-    public Notification createNotification(NotificationRequestDto dto, Admin admin) {
-        Notification notification = Notification.builder()
-                .notificationTitle(dto.getNotificationTitle())
-                .notificationContent(dto.getNotificationContent())
-                .category(dto.getCategory())
-                .isUrgent(dto.isUrgent())
-                .isRead(false)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        Notification saved = notificationRepository.save(notification);
-
-        AdminNotification adminNotification = AdminNotification.builder()
-                .admin(admin)
-                .notification(saved)
-                .build();
-        adminNotificationRepository.save(adminNotification);
-
-        sendToClient(admin.getAdminId(), new NotificationResponseDto(saved));
-        return saved;
-    }
-
-    // (편의) 도메인 로직에서 “작성자 본인에게만” 자동 생성할 때 사용
+    // (편의) 내부 도메인에서 이메일만 알고 바로 생성하고 싶을 때
     public Notification createForAuthorEmail(String email,
                                              String title,
                                              String content,
                                              NotificationCategory category,
                                              boolean isUrgent) {
-        Admin me = adminRepository.findByAdminEmail(email)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
 
         NotificationRequestDto dto = new NotificationRequestDto();
-        dto.setAdminId(me.getAdminId());        // 작성자 본인
         dto.setNotificationTitle(title);
         dto.setNotificationContent(content);
         dto.setCategory(category);
         dto.setUrgent(isUrgent);
 
-        return createNotification(dto);
+        NotificationResponseDto res = createForMe(email, dto);
+        return notificationRepository.findById(res.getNotificationId())
+                .orElseThrow(() -> new RuntimeException("생성된 알림을 찾을 수 없습니다."));
     }
 
+    //******읽음********
     //단일 읽음 처리
     @Transactional
     public NotificationResponseDto markAsRead(Long notificationId, String adminEmail){
         Notification n = notificationRepository.findById(notificationId)
                 .orElseThrow(()-> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
-        //admin 연관/컬럼 복구 후 아래 한 줄 활성화 (소유자 검증)
-        // if (!n.getAdmin().getEmail().equals(adminEmail)) throw new BusinessException(ErrorCode.FORBIDDEN);
-
-        if (!n.isRead()){
-            n.setRead(true);
-        }
+        //admin 연관/컬럼 복구 시 소유자 검증 추가
+        if (!n.isRead()) n.setRead(true);
         return new NotificationResponseDto(n);
     }
     // 전체 읽음 처리
     @Transactional
-    public String markAllAsReadByAdminId(Long adminId){
-        if (adminId == null) throw new IllegalArgumentException("adminId가 필요합니다.");
-        notificationRepository.markAllAsReadByAdminId(adminId);
+    public String markAllAsReadByEmail(String adminEmail){
+        Admin me = adminRepository.findByAdminEmail(adminEmail)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
+        notificationRepository.markAllAsReadByAdminId(me.getAdminId());
         return "전체 알림이 읽음 처리되었습니다.";
     }
 }
