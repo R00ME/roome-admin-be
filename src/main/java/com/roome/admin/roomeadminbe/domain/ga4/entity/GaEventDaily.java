@@ -8,24 +8,27 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "ga_event_daily")
 public class GaEventDaily {
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy =  GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate statDate;
     private String eventName;
     private String batchId;
 
     @Column(name = "user_id")
-    private String userId;   // 예약어 아니면 그대로 저장
+    private String userId;
 
     private String sessionId;
 
-    private int sessionCount;
-    private int uniqueFeatures;
-    private int uniqueUsers;
+    private Long sessionCount;
+    private Long uniqueFeatures;
+    private Long uniqueUsers;
 
+    private LocalDate eventTime;
     private LocalDateTime collectedAt;
 }
 

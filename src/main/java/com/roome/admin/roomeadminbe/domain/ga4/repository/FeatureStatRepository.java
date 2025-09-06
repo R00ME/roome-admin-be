@@ -1,4 +1,7 @@
 package com.roome.admin.roomeadminbe.domain.ga4.repository;
 
-public interface FeatureStatRepository {
+import com.roome.admin.roomeadminbe.domain.ga4.entity.GaFeatureStat;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface FeatureStatRepository extends JpaRepository<GaFeatureStat, Long> {
 }

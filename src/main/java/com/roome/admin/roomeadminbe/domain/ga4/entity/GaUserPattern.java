@@ -7,7 +7,7 @@ import java.util.Set;
 @Entity
 @Table(name = "ga_user_pattern")
 public class GaUserPattern {
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

@@ -2,6 +2,9 @@ package com.roome.admin.roomeadminbe.domain.ga4.service;
 
 import com.google.analytics.data.v1beta.*;
 import com.roome.admin.roomeadminbe.domain.ga4.entity.GaEventDaily;
+import com.roome.admin.roomeadminbe.domain.ga4.repository.FeatureStatRepository;
+import com.roome.admin.roomeadminbe.domain.ga4.repository.GaEventDailyRepository;
+import com.roome.admin.roomeadminbe.domain.ga4.repository.GaUserPatternRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,13 +18,12 @@ public class GaEventCollectorService {
 
     private final BetaAnalyticsDataClient analyticsDataClient;
     private final GaEventDailyRepository dailyRepository;
+    private final FeatureStatRepository featureStatRepository;
+    private final GaUserPatternRepository gaUserPatternRepository;
 
     @Value("${ga4.property-id}")
     private String propertyId;
 
-    /**
-     * 특정 날짜의 이벤트 데이터를 수집하여 Daily 집계 저장
-     */
     public void collectDailyEvents(LocalDate date) {
         RunReportRequest request = RunReportRequest.newBuilder()
                 .setProperty("properties/" + propertyId)
@@ -29,44 +31,24 @@ public class GaEventCollectorService {
                         .setStartDate(date.toString())
                         .setEndDate(date.toString()))
                 .addDimensions(Dimension.newBuilder().setName("eventName"))
-                .addDimensions(Dimension.newBuilder().setName("customEvent:feature_name"))
+//                .addDimensions(Dimension.newBuilder().setName("userId"))
+                .addDimensions(Dimension.newBuilder().setName("customEvent:custom_user_id"))
                 .addMetrics(Metric.newBuilder().setName("eventCount"))
-                .addMetrics(Metric.newBuilder().setName("customEvent:duration_ms"))
-                .addMetrics(Metric.newBuilder().setName("customEvent:value"))
-                .addMetrics(Metric.newBuilder().setName("customEvent:session_count"))
-                .addMetrics(Metric.newBuilder().setName("customEvent:unique_users"))
+                .addMetrics(Metric.newBuilder().setName("userEngagementDuration"))
                 .build();
 
         RunReportResponse response = analyticsDataClient.runReport(request);
 
-        // Daily 집계 저장
         for (Row row : response.getRowsList()) {
-            String eventName = row.getDimensionValues(0).getValue();
-            String featureName = row.getDimensionValues(1).getValue();
-
-            Long eventCount = parseLongSafe(row.getMetricValues(0).getValue());
-            Long durationMs = parseLongSafe(row.getMetricValues(1).getValue());
-            Long value = parseLongSafe(row.getMetricValues(2).getValue());
-            Long sessionCount = parseLongSafe(row.getMetricValues(3).getValue());
-            Long uniqueUsers = parseLongSafe(row.getMetricValues(4).getValue());
-
             GaEventDaily daily = GaEventDaily.builder()
-                    .statDate(date)
-                    .eventName(eventName)
-                    .featureName(featureName)
-                    .eventCount(eventCount)
-                    .durationMsSum(durationMs)
-                    .rewardPointsSum(value) // 기존 value → rewardPointsSum 필드 매핑
-                    .sessionCountSum(sessionCount)
-                    .uniqueUsersSum(uniqueUsers)
-                    .collectedAt(LocalDateTime.now())
-                    .build();
-
+                    .eventTime(date)
+                    .eventName(row.getDimensionValues(0).getValue())
+                    .userId(row.getDimensionValues(1).getValue())
+//                    .sessionId(row.getDimensionValues(2).getValue())
+                    .collectedAt(LocalDateTime.now()).build();
             dailyRepository.save(daily);
-        }
-    }
 
-    private Long parseLongSafe(String value) {
-        return (value == null || value.isBlank()) ? 0L : Long.parseLong(value);
+            // TODO: feature_stats, user_patterns → JSON 파싱 후 FeatureStat/UserPattern 엔티티로 분리 저장
+        }
     }
 }
