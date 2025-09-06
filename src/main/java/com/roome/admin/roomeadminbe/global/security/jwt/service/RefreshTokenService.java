@@ -13,7 +13,7 @@ public class RefreshTokenService {
     private final RedisTemplate<String, String> refreshTokenRedisTemplate;
 
     public RefreshTokenService(
-            @Qualifier("refreshTokenRedisTemplate") RedisTemplate<String, String> refreshTokenRedisTemplate
+            @Qualifier("BO_refreshTokenRedisTemplate") RedisTemplate<String, String> refreshTokenRedisTemplate
     ) {
         this.refreshTokenRedisTemplate = refreshTokenRedisTemplate;
     }

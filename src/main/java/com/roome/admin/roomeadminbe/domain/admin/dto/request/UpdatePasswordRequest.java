@@ -1,9 +1,7 @@
 package com.roome.admin.roomeadminbe.domain.admin.dto.request;
 
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 public class UpdatePasswordRequest {

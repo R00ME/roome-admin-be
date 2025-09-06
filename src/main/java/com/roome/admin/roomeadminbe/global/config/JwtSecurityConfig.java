@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class JwtSecurityConfig extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> {
 
     private final TokenProvider tokenProvider;
-    @Qualifier("blacklistRedisTemplate")
+    @Qualifier("BO_blacklistRedisTemplate")
     private final RedisTemplate<String, Long> blacklistRedisTemplate;
 
     @Override

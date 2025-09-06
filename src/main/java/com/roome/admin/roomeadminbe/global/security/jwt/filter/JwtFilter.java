@@ -27,7 +27,7 @@ public class JwtFilter extends GenericFilterBean {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
     private final TokenProvider tokenProvider;
-    @Qualifier("blacklistRedisTemplate")
+    @Qualifier("BO_blacklistRedisTemplate")
     private final RedisTemplate<String, Long> blacklistRedisTemplate;
 
     @Override

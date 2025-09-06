@@ -11,7 +11,7 @@ public enum NotificationCategory {
 
     private final String displayName;
 
-    NotificationCategory(String displayName){
+    NotificationCategory(String displayName) {
         this.displayName = displayName;
     }
 }

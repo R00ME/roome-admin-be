@@ -3,7 +3,6 @@ package com.roome.admin.roomeadminbe.global.config;
 import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAccessDeniedHandler;
 import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAuthenticationEntryPoint;
 import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,14 +26,25 @@ import java.util.List;
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final TokenProvider tokenProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
-    @Qualifier("blacklistRedisTemplate")
+    @Qualifier("BO_blacklistRedisTemplate")
     private final RedisTemplate<String, Long> blacklistRedisTemplate;
+
+    public SecurityConfig(
+            TokenProvider tokenProvider,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            JwtAccessDeniedHandler jwtAccessDeniedHandler,
+            @Qualifier("BO_blacklistRedisTemplate") RedisTemplate<String, Long> blacklistRedisTemplate
+    ) {
+        this.tokenProvider = tokenProvider;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
+        this.blacklistRedisTemplate = blacklistRedisTemplate;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
