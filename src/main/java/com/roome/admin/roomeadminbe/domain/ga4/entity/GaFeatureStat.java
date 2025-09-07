@@ -3,6 +3,8 @@ package com.roome.admin.roomeadminbe.domain.ga4.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -10,21 +12,13 @@ import lombok.*;
 @Builder
 @Table(name = "ga_feature_stat")
 public class GaFeatureStat {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private GaEventDaily event;
-
-    private String featureName;
-
-    private Integer usageCount;
-    private Long totalDuration;
-    private Long minDuration;
-    private Long maxDuration;
-    private Long averageDuration;
-    private Long medianDuration;
+    private LocalDate statDate;   // 집계 일자
+    private String eventName;   // 기능명
+    private Long totalUsers;      // 기능을 사용한 유저 수
+    private Long totalDuration;   // 총 사용시간(초)
+    private Long eventCount;      // 이벤트 발생 수
+    private Double avgDuration;   // 평균 사용시간(초)
 }

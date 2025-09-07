@@ -26,6 +26,7 @@ public class GaEventDaily {
 
     private Long eventCount;      // 이벤트 발생 횟수
     private Long engagementDuration; // userEngagementDuration 합산값
+    private Long durationSec;
 
     private LocalDateTime collectedAt; // 백엔드에서 수집 시각
 }

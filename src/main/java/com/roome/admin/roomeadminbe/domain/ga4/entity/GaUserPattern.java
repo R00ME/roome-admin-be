@@ -3,7 +3,8 @@ package com.roome.admin.roomeadminbe.domain.ga4.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -12,22 +13,16 @@ import java.util.Set;
 @Builder
 @Table(name = "ga_user_pattern")
 public class GaUserPattern {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private GaEventDaily event;
+    private LocalDate statDate;
+    private String customUserId;
+    private String featureName;
 
-    private String userId;
-
-    private Integer totalSessions;
-    private Long totalTime;
-
-    @ElementCollection
-    @CollectionTable(name = "ga_user_pattern_features", joinColumns = @JoinColumn(name = "user_pattern_id"))
-    @Column(name = "feature_name")
-    private Set<String> featuresUsed;
+    private Long totalDuration;   // 사용자별 총 사용시간
+    private Long eventCount;      // 사용자별 이벤트 발생 수
+    private LocalDateTime firstUseAt;
+    private LocalDateTime lastUseAt;
 }
