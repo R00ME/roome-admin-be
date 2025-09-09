@@ -20,13 +20,20 @@ public class GaEventDaily {
 
     private LocalDate statDate;   // 수집 기준 날짜
     private String eventName;     // 이벤트 이름
-    private String customUserId;  // 프론트에서 넘긴 사용자 식별자
     private String featureName;
-    private String sessionId;     // 세션 ID (필요시 customSessionId 같은 이름 사용)
+    private String customUserId;  // 프론트에서 넘긴 사용자 식별자
 
     private Long eventCount;      // 이벤트 발생 횟수
     private Long engagementDuration; // userEngagementDuration 합산값
     private Long durationSec;
 
+    private LocalDateTime eventAt;
     private LocalDateTime collectedAt; // 백엔드에서 수집 시각
+
+    public void update(Long eventCount, Long durationSec, LocalDateTime eventAt, LocalDateTime collectedAt) {
+        this.eventCount = eventCount;
+        this.durationSec = durationSec;
+        this.eventAt = eventAt;
+        this.collectedAt = collectedAt;
+    }
 }

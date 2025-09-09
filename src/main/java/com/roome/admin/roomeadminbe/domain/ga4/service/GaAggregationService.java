@@ -46,7 +46,7 @@ public class GaAggregationService {
 
             featureStatRepo.save(GaFeatureStat.builder()
                     .statDate(date)
-                    .eventName(feature)
+                    .featureName(feature)
                     .totalUsers(totalUsers)
                     .totalDuration(totalDuration)
                     .eventCount(eventCount)
