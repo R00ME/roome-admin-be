@@ -5,21 +5,26 @@ import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationRequestDto;
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationResponseDto;
 import com.roome.admin.roomeadminbe.domain.notification.service.NotificationService;
-import com.roome.admin.roomeadminbe.domain.notification.entity.Notification;
+import com.roome.admin.roomeadminbe.domain.notification.service.SseService;
 import com.roome.admin.roomeadminbe.global.exception.BusinessException;
 import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
+
 
 @RestController
 @RequestMapping("/api/admin/notifications")
@@ -27,6 +32,9 @@ import java.util.Map;
 public class NotificationController {
     private final NotificationService notificationService;
     private final AdminRepository adminRepository;
+    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
+    private final SseService sseService;
+
 
     //알림 생성(작성자 본인에게만 생성 + 실시간 푸시)
     @PostMapping
@@ -73,23 +81,18 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getMineGroupedWithSummary(email));
     }
 
+
     /** 5) SSE 구독: 본인 채널만 구독 가능 */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@AuthenticationPrincipal AdminDetails adminDetails,
-                                @RequestParam("adminId") Long adminId) {
-        String email = adminDetails.getUsername(); //email->username을 가져옴
-        if (email == null) throw new RuntimeException("인증 정보가 없습니다.");
-
-        Admin me = adminRepository.findByAdminEmail(email)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-
-        if (!me.getAdminId().equals(adminId)) {
-            throw new RuntimeException("본인 채널만 구독할 수 있습니다.");
+    public SseEmitter subscribe(@AuthenticationPrincipal AdminDetails admin) {
+        if (admin == null || admin.getAdminId() == null){
+            throw new RuntimeException("인증 정보가 없습니다.");
         }
 
         // 등록 + INIT 전송 + 타임아웃/정리는 서비스에서 처리
-        return notificationService.subscribe(adminId);
+        return sseService.subscribe(admin.getAdminId());
     }
+
     //전체 읽음 처리
     @PutMapping("/allread")
     public ResponseEntity<Map<String, String>> markAllAsRead(

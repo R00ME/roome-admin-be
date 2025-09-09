@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class GaUserPatternResponse {
+public class UserPatternResponse {
     private String featureName;
     private Long eventCount;
     private Long usageTimeSec;

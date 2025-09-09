@@ -28,6 +28,7 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 public class ApiUsageController {
 
     private final ApiUsageService apiUsageService;
+//    private final GaService gaService;
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping
@@ -50,4 +51,15 @@ public class ApiUsageController {
         UserDomainStatsResponse response = apiUsageService.getUserDomainStats(userId, startDate);
         return ofDataWithHttpStatus(response, HttpStatus.OK);
     }
+
+//    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+//    @GetMapping("/{userId}/user-feature-usage")
+//    public ResponseEntity<CommonResponse<List<UserPatternResponse>>> getUserFeatureUsage(
+//            @AuthenticationPrincipal AdminDetails adminDetails,
+//            @PathVariable String userId) {
+//
+//        List<UserPatternResponse> usageList = gaService.getUserFeatureUsage(userId);
+//
+//        return CommonResponse.ofDataWithHttpStatus(usageList, HttpStatus.OK);
+//    }
 }
