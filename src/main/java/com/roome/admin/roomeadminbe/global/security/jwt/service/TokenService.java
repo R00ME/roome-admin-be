@@ -27,11 +27,11 @@ public class TokenService {
 
     private final TokenProvider tokenProvider;
     private final RefreshTokenService refreshTokenService;
-    @Qualifier("blacklistRedisTemplate")
+    @Qualifier("BO_blacklistRedisTemplate")
     private final RedisTemplate<String, Long> blacklistRedisTemplate;
 
     public TokenService(
-            TokenProvider tokenProvider, RefreshTokenService refreshTokenService, @Qualifier("blacklistRedisTemplate") RedisTemplate<String, Long> blacklistRedisTemplate
+            TokenProvider tokenProvider, RefreshTokenService refreshTokenService, @Qualifier("BO_blacklistRedisTemplate") RedisTemplate<String, Long> blacklistRedisTemplate
     ) {
         this.tokenProvider = tokenProvider;
         this.refreshTokenService = refreshTokenService;

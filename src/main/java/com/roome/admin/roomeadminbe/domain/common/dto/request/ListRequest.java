@@ -2,14 +2,14 @@ package com.roome.admin.roomeadminbe.domain.common.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-@Getter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -28,7 +28,7 @@ public class ListRequest {
 
     public Pageable toPageable() {
         int safePage = (page != null && page > 0) ? page - 1 : 0;
-        String sortBy = (column != null && !column.isBlank()) ? column : "createdAt";
+        String sortBy = (column != null && !column.isBlank()) ? column : "id";
         return PageRequest.of(safePage, pageSize, sortDirection, sortBy);
     }
 

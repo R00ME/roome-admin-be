@@ -20,13 +20,13 @@ public class MailService {
             String subject = "[roome 관리자] 계정 초대 및 임시 비밀번호 안내";
             String message = """
                     안녕하세요,
-
+                    
                     하단 임시 비밀번호로 로그인하세요.:
-
+                    
                     👉 %s
-
+                    
                     임시 비밀번호: %s
-
+                    
                     로그인 후 반드시 비밀번호를 변경해주세요.
                     
                     감사합니다.
@@ -51,13 +51,13 @@ public class MailService {
             String subject = "[roome 관리자] 임시 비밀번호 발급";
             String message = """
                     안녕하세요,
-
+                    
                     하단 임시 비밀번호로 로그인하세요.:
-
+                    
                     👉 %s
-
+                    
                     임시 비밀번호: %s
-
+                    
                     로그인 후 반드시 비밀번호를 변경해주세요.
                     
                     감사합니다.
