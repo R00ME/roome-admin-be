@@ -14,6 +14,8 @@ import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
@@ -22,6 +24,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.time.ZoneId;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,40 +44,17 @@ public class NotificationService {
     private final AdminNotificationRepository adminNotificationRepository;
     private final AdminRepository adminRepository;
 
-    // 한 관리자당 SSE 연결 1개만 유지
-    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
-    // ******SSE 채널연결 + 전송******
-    //구독 : 새 연결 시 기존 연결은 종료하고 교체
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private final SseService sseService;
+
+    // 구독은 SseService로 위임
     public SseEmitter subscribe(Long adminId) {
-        SseEmitter emitter = new SseEmitter(30L * 60 * 1000L); //30분
-
-        // 이전 연결이 있었다면 종료
-        SseEmitter old = emitters.put(adminId, emitter);
-        if (old != null) {
-            try { old.complete(); } catch (Exception ignore) {}
-        }
-
-        // 연결 직후 INIT 한 번 전송 (스트림 활성화)
-        try { emitter.send(SseEmitter.event().name("INIT").data("ok")); } catch (Exception ignore) {}
-
-        // 끊기면 맵에서 제거
-        emitter.onCompletion(() -> emitters.remove(adminId, emitter));
-        emitter.onTimeout(() -> emitters.remove(adminId, emitter));
-
-        return emitter;
+        return sseService.subscribe(adminId);
     }
-
-    // 해당 관리자 전송
-    public void sendToClient(Long adminId, NotificationResponseDto dto)    {
-        SseEmitter emitter = emitters.get(adminId);
-        if (emitter == null) return;
-
-        try {
-            emitter.send(SseEmitter.event().name("notification").data(dto));
-        } catch (Exception ex) {
-            // 실패하면 정리
-            emitters.remove(adminId, emitter);
-        }
+    // 전송도 SseService로 위임 (기존 메서드 시그니처 유지)
+    public void sendToClient(Long adminId, NotificationResponseDto dto){
+        sseService.send(adminId, dto);
     }
 
     //*********공통 : 정렬/타입존 유틸
@@ -214,12 +204,18 @@ public class NotificationService {
                 AdminNotification.builder().admin(me).notification(saved).build()
         );
 
-        sendToClient(me.getAdminId(), new NotificationResponseDto(saved));
+        //sendToClient(me.getAdminId(), new NotificationResponseDto(saved));
+        //커밋 후 전송
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sendToClient(me.getAdminId(), new NotificationResponseDto(saved));
+            }
+        });
         return new NotificationResponseDto(saved);
     }
 
-    // (편의) 내부 도메인에서 이메일만 알고 바로 생성하고 싶을 때
-    public Notification createForAuthorEmail(String email,
+    public NotificationResponseDto publishForSelf(String email,
                                              String title,
                                              String content,
                                              NotificationCategory category,
@@ -231,9 +227,7 @@ public class NotificationService {
         dto.setCategory(category);
         dto.setUrgent(isUrgent);
 
-        NotificationResponseDto res = createForMe(email, dto);
-        return notificationRepository.findById(res.getNotificationId())
-                .orElseThrow(() -> new RuntimeException("생성된 알림을 찾을 수 없습니다."));
+        return createForMe(email, dto);
     }
 
     //******읽음********
@@ -254,4 +248,44 @@ public class NotificationService {
         notificationRepository.markAllAsReadByAdminId(me.getAdminId());
         return "전체 알림이 읽음 처리되었습니다.";
     }
+
+    //*****스케줄러/자동삭제*******
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Value("${notification.cleanup.enabled:false}")
+    private boolean cleanupEnabled;
+
+    @Value("${notification.cleanup.retention-days:30}")
+    private int retentionDays;
+
+    // 매월 1일 04:30 KST (yml 값 사용, 일관성 유지)
+    @Scheduled(cron = "${notification.cleanup.cron}", zone = "Asia/Seoul")
+    public void scheduledCleanup() {
+        if (!cleanupEnabled) return;
+        LocalDateTime cutoff = LocalDateTime.now(KST).minusDays(retentionDays);
+        CleanupResult r = cleanupOlderThan(cutoff);
+        log.info("[NotificationCleanup] cutoff={}, joinDeleted={}, notifDeleted={}",
+                cutoff, r.joinDeleted(), r.notifDeleted());
+    }
+
+    @Transactional
+    public CleanupResult cleanupOlderThan(LocalDateTime cutoff) {
+        long joinDeleted = em.createQuery("""
+            DELETE FROM AdminNotification an
+            WHERE an.notification.createdAt < :cutoff
+        """).setParameter("cutoff", cutoff).executeUpdate();
+
+        long notifDeleted = em.createQuery("""
+            DELETE FROM Notification n
+            WHERE n.createdAt < :cutoff
+        """).setParameter("cutoff", cutoff).executeUpdate();
+
+        return new CleanupResult(cutoff, joinDeleted, notifDeleted);
+    }
+
+    public record CleanupResult(LocalDateTime cutoff, long joinDeleted, long notifDeleted) {}
 }
+
+
