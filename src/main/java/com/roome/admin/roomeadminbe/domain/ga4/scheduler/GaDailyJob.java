@@ -17,14 +17,14 @@ public class GaDailyJob {
     private final GaAggregationService aggregationService;
 
     // 매일 새벽 2시(KST) 전일 데이터 수집
-    @Scheduled(cron = "0 15 19 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 30 18 * * *", zone = "Asia/Seoul")
     public void collectYesterday() {
         LocalDate yesterday = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
         gaEventService.collectDailyEvents(yesterday);
     }
 
     // 매일 새벽 3시 KST, 전일 데이터 집계
-    @Scheduled(cron = "0 20 19 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 35 18 * * *", zone = "Asia/Seoul")
     public void aggregateYesterday() {
         LocalDate yesterday = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
         aggregationService.aggregate(yesterday);

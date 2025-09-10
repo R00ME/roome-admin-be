@@ -58,9 +58,11 @@ public class GaAggregationService {
 
         // 사용자별 패턴 집계
         events.stream()
-                .filter(e -> e.getFeatureName() != null)
-                .filter(e -> DOMAIN_RULES.values().contains(e.getFeatureName()))  // 필요한 feature만
-                .collect(Collectors.groupingBy(e -> e.getCustomUserId() + "_" + e.getFeatureName()))
+                .filter(e -> e.getEventName() != null && e.getEventName().endsWith("_usage"))
+                .collect(Collectors.groupingBy(e -> {
+                    String feature = extractFeatureName(e.getEventName());
+                    return e.getCustomUserId() + "_" + feature;
+                }))
                 .forEach((key, list) -> {
                     String[] parts = key.split("_", 2);
                     String userId = parts[0];
@@ -87,13 +89,11 @@ public class GaAggregationService {
         log.info("UserPattern 집계 완료: date={}, users={}", date, events.size());
     }
 
-    private static final Map<Predicate<String>, String> DOMAIN_RULES = new LinkedHashMap<>() {{
-        put(uri -> uri.contains("/comments"), "comment");
-        put(uri -> uri.contains("/visit"), "roomVisit");
-        put(uri -> uri.startsWith("/api/my-cd"), "cd");
-        put(uri -> uri.startsWith("/api/guestbooks"), "guestbook");
-        put(uri -> uri.startsWith("/api/mybooks"), "book");
-        put(uri -> uri.startsWith("/api/rooms"), "room");
-        put(uri -> uri.startsWith("/api/mates"), "mates");
-    }};
+    private static String extractFeatureName(String eventName) {
+        if (eventName == null || !eventName.endsWith("_usage")) {
+            return null; // usage 이벤트가 아니면 무시
+        }
+        // "_usage" 제거
+        return eventName.replace("_usage", "");
+    }
 }
