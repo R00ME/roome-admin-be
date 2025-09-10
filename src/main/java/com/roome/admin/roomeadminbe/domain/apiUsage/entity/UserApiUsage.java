@@ -1,5 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.apiUsage.entity;
 
+import com.roome.admin.roomeadminbe.domain.common.entity.Timestamped;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 @Entity
 @NoArgsConstructor
 @Table(name = "user_api_usage")
-public class UserApiUsage {
+public class UserApiUsage extends Timestamped {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

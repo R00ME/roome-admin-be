@@ -4,14 +4,20 @@ import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
 import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationRequestDto;
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationResponseDto;
-import com.roome.admin.roomeadminbe.domain.notification.entity.Notification;
 import com.roome.admin.roomeadminbe.domain.notification.entity.AdminNotification;
-import com.roome.admin.roomeadminbe.domain.notification.repository.NotificationRepository;
+import com.roome.admin.roomeadminbe.domain.notification.entity.Notification;
 import com.roome.admin.roomeadminbe.domain.notification.repository.AdminNotificationRepository;
+import com.roome.admin.roomeadminbe.domain.notification.repository.NotificationRepository;
 import com.roome.admin.roomeadminbe.domain.notification.type.NotificationCategory;
 import com.roome.admin.roomeadminbe.global.exception.BusinessException;
 import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -19,21 +25,14 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.time.ZoneId;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-
 
 
 @Service
@@ -52,8 +51,9 @@ public class NotificationService {
     public SseEmitter subscribe(Long adminId) {
         return sseService.subscribe(adminId);
     }
+
     // 전송도 SseService로 위임 (기존 메서드 시그니처 유지)
-    public void sendToClient(Long adminId, NotificationResponseDto dto){
+    public void sendToClient(Long adminId, NotificationResponseDto dto) {
         sseService.send(adminId, dto);
     }
 
@@ -61,7 +61,9 @@ public class NotificationService {
     private static final ZoneOffset UTC = ZoneOffset.UTC;
     private static final DateTimeFormatter ISO_IN_UTC = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-    /** createdAt desc, tie-break notificationId desc */
+    /**
+     * createdAt desc, tie-break notificationId desc
+     */
     private static final Comparator<Notification> LATEST_FIRST =
             Comparator.comparing(Notification::getCreatedAt).reversed()
                     .thenComparing(Comparator.comparing(Notification::getNotificationId).reversed());
@@ -70,7 +72,7 @@ public class NotificationService {
         return list.stream().sorted(LATEST_FIRST).toList();
     }
 
-    private Map<String, Object> toItem(Notification n){
+    private Map<String, Object> toItem(Notification n) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("notificationId", n.getNotificationId());
         m.put("category", n.getCategory().name());
@@ -81,11 +83,11 @@ public class NotificationService {
         // 표시와 그룹 키 모두 UTC 기준으로 통일
         String ts = n.getCreatedAt().atOffset(ZoneOffset.UTC).format(ISO_IN_UTC);
         m.put("timestamp", ts);
-        m.put("dateKey",n.getCreatedAt().atOffset(UTC).toLocalDate().toString());
+        m.put("dateKey", n.getCreatedAt().atOffset(UTC).toLocalDate().toString());
         return m;
     }
 
-    private Map<String, Object> toGroupedResponse(List<Notification> list){
+    private Map<String, Object> toGroupedResponse(List<Notification> list) {
         //totalCount
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("totalCount", list.size());
@@ -115,7 +117,7 @@ public class NotificationService {
     }
 
     // "내 알림 전부" 조회 (알림한)
-    public Map<String, Object> getMineGroupedWithSummary(String adminEmail){
+    public Map<String, Object> getMineGroupedWithSummary(String adminEmail) {
         Admin me = adminRepository.findByAdminEmail(adminEmail)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
 
@@ -145,7 +147,7 @@ public class NotificationService {
 
     // 안 읽은 조회 목록 (관리자 범위)
     @Transactional(readOnly = true)
-    public Map<String, Object> getUnreadGrouped(String adminEmail){
+    public Map<String, Object> getUnreadGrouped(String adminEmail) {
         Admin me = adminRepository.findByAdminEmail(adminEmail)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
         // 관리자 범위로 가져온 뒤, 메모리에서 unread만 필터
@@ -159,11 +161,11 @@ public class NotificationService {
 
 
     //내 알림함 응답 시 날짜별 그룹
-    private Map<String, List<Map<String, Object>>> groupByDate(List<Notification> list){
+    private Map<String, List<Map<String, Object>>> groupByDate(List<Notification> list) {
         return list.stream()
                 .map(this::toItem)
                 .collect(Collectors.groupingBy(
-                        it-> (String) it.get("dateKey"),
+                        it -> (String) it.get("dateKey"),
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
@@ -171,7 +173,7 @@ public class NotificationService {
 
     // 긴급 목록 조회 (관리자 범위 + urgent만)
     @Transactional(readOnly = true)
-    public Map<String, Object> getUrgentGrouped(String adminEmail){
+    public Map<String, Object> getUrgentGrouped(String adminEmail) {
         Admin me = adminRepository.findByAdminEmail(adminEmail)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
 
@@ -185,9 +187,9 @@ public class NotificationService {
 
     // *****생성(작성자)*****
     @Transactional
-    public NotificationResponseDto createForMe(String email, NotificationRequestDto req){
+    public NotificationResponseDto createForMe(String email, NotificationRequestDto req) {
         Admin me = adminRepository.findByAdminEmail(email)
-                .orElseThrow(()-> new RuntimeException("존재하지 않는 관리자입니다."));
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
 
         Notification notification = Notification.builder()
                 .notificationTitle(req.getNotificationTitle())
@@ -216,10 +218,10 @@ public class NotificationService {
     }
 
     public NotificationResponseDto publishForSelf(String email,
-                                             String title,
-                                             String content,
-                                             NotificationCategory category,
-                                             boolean isUrgent) {
+                                                  String title,
+                                                  String content,
+                                                  NotificationCategory category,
+                                                  boolean isUrgent) {
 
         NotificationRequestDto dto = new NotificationRequestDto();
         dto.setNotificationTitle(title);
@@ -233,16 +235,17 @@ public class NotificationService {
     //******읽음********
     //단일 읽음 처리
     @Transactional
-    public NotificationResponseDto markAsRead(Long notificationId, String adminEmail){
+    public NotificationResponseDto markAsRead(Long notificationId, String adminEmail) {
         Notification n = notificationRepository.findById(notificationId)
-                .orElseThrow(()-> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
         //admin 연관/컬럼 복구 시 소유자 검증 추가
         if (!n.isRead()) n.setRead(true);
         return new NotificationResponseDto(n);
     }
+
     // 전체 읽음 처리
     @Transactional
-    public String markAllAsReadByEmail(String adminEmail){
+    public String markAllAsReadByEmail(String adminEmail) {
         Admin me = adminRepository.findByAdminEmail(adminEmail)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
         notificationRepository.markAllAsReadByAdminId(me.getAdminId());
@@ -273,19 +276,20 @@ public class NotificationService {
     @Transactional
     public CleanupResult cleanupOlderThan(LocalDateTime cutoff) {
         long joinDeleted = em.createQuery("""
-            DELETE FROM AdminNotification an
-            WHERE an.notification.createdAt < :cutoff
-        """).setParameter("cutoff", cutoff).executeUpdate();
+                    DELETE FROM AdminNotification an
+                    WHERE an.notification.createdAt < :cutoff
+                """).setParameter("cutoff", cutoff).executeUpdate();
 
         long notifDeleted = em.createQuery("""
-            DELETE FROM Notification n
-            WHERE n.createdAt < :cutoff
-        """).setParameter("cutoff", cutoff).executeUpdate();
+                    DELETE FROM Notification n
+                    WHERE n.createdAt < :cutoff
+                """).setParameter("cutoff", cutoff).executeUpdate();
 
         return new CleanupResult(cutoff, joinDeleted, notifDeleted);
     }
 
-    public record CleanupResult(LocalDateTime cutoff, long joinDeleted, long notifDeleted) {}
+    public record CleanupResult(LocalDateTime cutoff, long joinDeleted, long notifDeleted) {
+    }
 }
 
 

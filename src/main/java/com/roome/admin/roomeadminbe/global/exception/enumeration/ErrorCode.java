@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
     UNHANDLED_EXCEPTION("알 수 없는 오류입니다.", HttpStatus.BAD_REQUEST),
     USER_NOT_FOUND("사용자 정보가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    EXISTS_ADMIN("이미 존재하는 관리자입니다.", HttpStatus.CONFLICT),
     PASSWORD_NOT_MATCHES("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
     INVALID_INPUT_VALUE("유효하지 않은 요청값입니다.", HttpStatus.BAD_REQUEST),
     INVALID_JSON("json 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST),

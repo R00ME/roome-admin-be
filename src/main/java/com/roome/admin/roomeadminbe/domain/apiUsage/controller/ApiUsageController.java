@@ -8,6 +8,8 @@ import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.UserDomainStats
 import com.roome.admin.roomeadminbe.domain.apiUsage.service.ApiUsageService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserPatternResponse;
+import com.roome.admin.roomeadminbe.domain.ga4.service.GaService;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse.ofDataWithHttpStatus;
 
@@ -28,6 +31,7 @@ import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResp
 public class ApiUsageController {
 
     private final ApiUsageService apiUsageService;
+    private final GaService gaService;
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping
@@ -49,5 +53,16 @@ public class ApiUsageController {
         LocalDate startDate = LocalDate.now();
         UserDomainStatsResponse response = apiUsageService.getUserDomainStats(userId, startDate);
         return ofDataWithHttpStatus(response, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @GetMapping("/{userId}/user-feature-usage")
+    public ResponseEntity<CommonResponse<List<UserPatternResponse>>> getUserFeatureUsage(
+            @AuthenticationPrincipal AdminDetails adminDetails,
+            @PathVariable String userId) {
+
+        List<UserPatternResponse> usageList = gaService.getUserFeatureUsage(userId);
+
+        return CommonResponse.ofDataWithHttpStatus(usageList, HttpStatus.OK);
     }
 }
