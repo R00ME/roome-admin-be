@@ -4,7 +4,6 @@ import com.roome.admin.roomeadminbe.domain.event.entity.EventReceiverTarget;
 import lombok.Data;
 import lombok.ToString;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data

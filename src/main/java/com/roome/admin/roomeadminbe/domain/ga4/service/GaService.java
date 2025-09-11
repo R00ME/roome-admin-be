@@ -8,7 +8,6 @@ import com.roome.admin.roomeadminbe.domain.ga4.repository.GaUserStatRepository;
 import com.roome.admin.roomeadminbe.global.exception.BusinessException;
 import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

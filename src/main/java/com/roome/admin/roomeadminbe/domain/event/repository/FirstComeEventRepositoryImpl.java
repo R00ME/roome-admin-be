@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-import static com.roome.admin.roomeadminbe.domain.event.entity.QFirstComeEvent.*;
+import static com.roome.admin.roomeadminbe.domain.event.entity.QFirstComeEvent.firstComeEvent;
 
 @RequiredArgsConstructor
 public class FirstComeEventRepositoryImpl implements FirstComeEventRepositoryCustom{
