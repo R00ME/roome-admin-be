@@ -33,6 +33,7 @@ public class GaEventDaily {
 
     private LocalDateTime eventAt;
     private LocalDateTime collectedAt; // 백엔드에서 수집 시각
+    private String source;        // URL
 
     public void update(Long eventCount, Long durationSec, LocalDateTime eventAt, LocalDateTime collectedAt) {
         this.eventCount = eventCount;
