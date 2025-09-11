@@ -72,92 +72,6 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
     }
 
     @Override
-    public String getMauValue() {
-        Long sum = jpaQueryFactory
-                .select(gaEventDaily.eventCount.sum().coalesce(0L))
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("active28DayUsers"),
-                        gaEventDaily.statDate.eq(LocalDate.now())
-                )
-                .fetchOne();
-
-        return String.valueOf(sum == null ? 0L : sum);
-    }
-
-    @Override
-    public String getMauChangeRate() {
-        Long today = jpaQueryFactory
-                .select(gaEventDaily.eventCount.sum().coalesce(0L))
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("active28DayUsers"),
-                        gaEventDaily.statDate.eq(LocalDate.now())
-                )
-                .fetchOne();
-        today = today == null ? 0L : today;
-
-        Long yesterday = jpaQueryFactory
-                .select(gaEventDaily.eventCount.sum().coalesce(0L))
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("active28DayUsers"),
-                        gaEventDaily.statDate.eq(LocalDate.now().minusDays(1))
-                )
-                .fetchOne();
-
-        yesterday = yesterday == null ? 0L : yesterday;
-        if(yesterday == 0L ) return null;
-        Double result = ((double) (today - yesterday) / (double) yesterday);
-
-        return String.valueOf(result);
-    }
-
-    @Override
-    public String getDauValue() {
-        Long sum = jpaQueryFactory
-                .select(gaEventDaily.eventCount.sum().coalesce(0L))
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("activeUsers"),
-                        gaEventDaily.statDate.eq(LocalDate.now()) // 오늘 날짜
-                )
-                .fetchOne();
-
-        return String.valueOf(sum == null ? 0L : sum);
-    }
-
-    @Override
-    public String getDauChangeRate() {
-
-        Long today = jpaQueryFactory
-                .select(gaEventDaily.eventCount.sum().coalesce(0L))
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("activeUsers"),
-                        gaEventDaily.statDate.eq(LocalDate.now()) // 오늘 날짜
-                )
-                .fetchOne();
-
-        today = today == null ? 0L : today;
-
-        Long yesterday = jpaQueryFactory
-                .select(gaEventDaily.eventCount.sum().coalesce(0L))
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("activeUsers"),
-                        gaEventDaily.statDate.eq(LocalDate.now().minusDays(1)) // 어제 날짜
-                )
-                .fetchOne();
-
-        yesterday = yesterday == null ? 0L : yesterday;
-        if(yesterday == 0L ) return null;
-        Double result = ((double) (today - yesterday) / (double) yesterday);
-
-        return String.valueOf(result);
-    }
-
-    @Override
     public String getInflowValue() {
         Long sum = jpaQueryFactory
                 .select(gaEventDaily.eventCount.sum().coalesce(0L))
@@ -194,8 +108,8 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
                 .fetchOne();
 
         yesterday = yesterday == null ? 0L : yesterday;
-        if(yesterday == 0L ) return null;
-        Double result = ((double) (today - yesterday) / (double) yesterday);
+        if (yesterday == 0L) return null;
+        Double result = ((double) (today - yesterday) * 100.0 / (double) yesterday);
 
         return String.valueOf(result);
     }
@@ -220,73 +134,6 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
                 .fetchFirst();                 // LIMIT 1
 
         return topSource == null ? "" : topSource;
-    }
-
-    @Override
-    public List<ChartResponse> getMauChart() {
-        LocalDate today = LocalDate.now();
-
-        // 오늘 ~ 6개월 전까지(총 7개) 대상 일자 생성
-        List<LocalDate> targets = new ArrayList<>();
-        for (int i = 0; i <= 6; i++) {
-            targets.add(today.minusMonths(i));
-        }
-
-        // SUM(event_count) 별칭을 잡아두면 Tuple에서 안전하게 꺼낼 수 있어요
-        NumberExpression<Long> sumEventCount = gaEventDaily.eventCount.sum();
-
-        List<Tuple> rows = jpaQueryFactory
-                .select(gaEventDaily.statDate, sumEventCount)
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("active28DayUsers"),
-                        gaEventDaily.statDate.in(targets)
-                )
-                .groupBy(gaEventDaily.statDate)
-                .orderBy(gaEventDaily.statDate.asc())
-                .fetch();
-
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        return rows.stream()
-                .map(t -> new ChartResponse(
-                        t.get(gaEventDaily.statDate).format(fmt),                // xLabels
-                        String.valueOf(t.get(sumEventCount))                     // value
-                ))
-                .toList();
-    }
-
-    @Override
-    public List<ChartResponse> getDauChart() {
-        LocalDate today = LocalDate.now();
-
-        // 오늘 ~ 6일 전까지 날짜 리스트 만들기
-        List<LocalDate> targets = new ArrayList<>();
-        for (int i = 0; i <= 6; i++) {
-            targets.add(today.minusDays(i));
-        }
-
-        NumberExpression<Long> sumEventCount = gaEventDaily.eventCount.sum();
-
-        List<Tuple> rows = jpaQueryFactory
-                .select(gaEventDaily.statDate, sumEventCount)
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("activeUsers"),
-                        gaEventDaily.statDate.in(targets)
-                )
-                .groupBy(gaEventDaily.statDate)
-                .orderBy(gaEventDaily.statDate.asc())
-                .fetch();
-
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        return rows.stream()
-                .map(t -> new ChartResponse(
-                        t.get(gaEventDaily.statDate).format(fmt),   // xLabels
-                        String.valueOf(t.get(sumEventCount))        // value
-                ))
-                .toList();
     }
 
     @Override
@@ -408,7 +255,8 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
     }
 
     @Override
-    public String getMostEntryPath() {    LocalDate today = LocalDate.now();
+    public String getMostEntryPath() {
+        LocalDate today = LocalDate.now();
         LocalDate startOfThisMonth = today.withDayOfMonth(1);
         LocalDate startOfNextMonth = startOfThisMonth.plusMonths(1);
         LocalDate startOfPrevMonth = startOfThisMonth.minusMonths(1);
