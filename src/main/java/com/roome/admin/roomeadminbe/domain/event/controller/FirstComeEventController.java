@@ -7,6 +7,7 @@ import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.domain.event.dto.EventListResponseDTO;
 import com.roome.admin.roomeadminbe.domain.event.dto.EventRegisterRequestDTO;
 import com.roome.admin.roomeadminbe.domain.event.service.FirstComeEventService;
+import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +33,9 @@ public class FirstComeEventController {
 
 	// 이벤트 생성
 	@PostMapping()
-	public ResponseEntity<?> registerEvent(@AuthenticationPrincipal UserDetails userDetails, @RequestBody EventRegisterRequestDTO eventRegisterRequestDTO){
+	public ResponseEntity<?> registerEvent(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody EventRegisterRequestDTO eventRegisterRequestDTO){
 
-		firstComeEventService.registerEvent(eventRegisterRequestDTO, userDetails.getUsername());
+		firstComeEventService.registerEvent(eventRegisterRequestDTO, adminDetails.getUsername());
 
 		return new ResponseEntity<>(HttpStatus.CREATED);
 	}

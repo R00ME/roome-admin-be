@@ -14,7 +14,7 @@ import java.time.LocalDate;
 public class GaFeatureStat {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String eventName;     // 이벤트명
     private LocalDate statDate;   // 집계 일자
     private String featureName;   // 기능명
     private Long totalUsers;      // 기능을 사용한 유저 수
