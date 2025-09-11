@@ -12,15 +12,9 @@ import java.util.List;
 public interface GaEventDailyRepositoryCustom {
 
     List<ActivityHourResponse> getActivityByCustomRange(LocalDate date);
-    String getMauValue();
-    String getMauChangeRate();
-    String getDauValue();
-    String getDauChangeRate();
     String getInflowValue();
     String getInflowChangeRate();
     String getReferralValue();
-    List<ChartResponse> getMauChart();
-    List<ChartResponse> getDauChart();
     List<ChartResponse> getInflowChart();
     List<ChartResponse> getContentChart();
     List<ChartResponse> getReferralChart();

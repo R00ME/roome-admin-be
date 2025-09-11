@@ -4,6 +4,7 @@ import com.roome.admin.roomeadminbe.domain.ga4.dto.response.*;
 import com.roome.admin.roomeadminbe.domain.ga4.repository.GaEventDailyRepository;
 import com.roome.admin.roomeadminbe.domain.ga4.repository.GaFeatureStatRepository;
 import com.roome.admin.roomeadminbe.domain.ga4.repository.GaUserPatternRepository;
+import com.roome.admin.roomeadminbe.domain.ga4.repository.GaUserStatRepository;
 import com.roome.admin.roomeadminbe.global.exception.BusinessException;
 import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class GaService {
     private final GaUserPatternRepository gaUserPatternRepository;
     private final GaEventDailyRepository gaEventDailyRepository;
     private final GaFeatureStatRepository gaFeatureStatRepository;
+    private final GaUserStatRepository gaUserStatRepository;
 
     public List<UserPatternResponse> getUserFeatureUsage(String userId) {
         List<UserPatternResponse> results = gaUserPatternRepository.getUserFeatureUsage(userId);
@@ -46,14 +48,14 @@ public class GaService {
     public List<SummaryResponse> getSumaary() {
 
         SummaryResponse mau = new SummaryResponse("월간 활성 사용자수(MAU)"
-                , gaEventDailyRepository.getMauValue()
+                , gaUserStatRepository.getMauValue()
                 , "명"
-                , gaEventDailyRepository.getMauChangeRate());
+                , gaUserStatRepository.getMauChangeRate());
 
         SummaryResponse dau = new SummaryResponse("일간 활성 사용자수(DAU)"
-                , gaEventDailyRepository.getDauValue()
+                , gaUserStatRepository.getDauValue()
                 , "명"
-                , gaEventDailyRepository.getDauChangeRate());
+                , gaUserStatRepository.getDauChangeRate());
 
         SummaryResponse content = new SummaryResponse("콘텐츠 등록 수"
                 , gaFeatureStatRepository.getContentValue()
@@ -75,9 +77,9 @@ public class GaService {
 
     public List<ChartResponse> getChart(String typeId) {
         if ("MAU".equals(typeId)) {
-            return gaEventDailyRepository.getMauChart();
+            return gaUserStatRepository.getMauChart();
         } else if ("DAU".equals(typeId)) {
-            return gaEventDailyRepository.getDauChart();
+            return gaUserStatRepository.getDauChart();
         } else if ("INFLOW".equals(typeId)) {
             return gaEventDailyRepository.getInflowChart();
         } else if ("CONTENT".equals(typeId)) {
