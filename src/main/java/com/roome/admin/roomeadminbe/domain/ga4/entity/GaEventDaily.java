@@ -23,13 +23,16 @@ public class GaEventDaily {
     private String featureName;
     private String customUserId;  // 프론트에서 넘긴 사용자 식별자
 
+    private String eventCategory;
+    private String source; // 유입 소스 URL
+    private String medium; // 유입 매체
+
     private Long eventCount;      // 이벤트 발생 횟수
     private Long engagementDuration; // userEngagementDuration 합산값
     private Long durationSec;
 
     private LocalDateTime eventAt;
     private LocalDateTime collectedAt; // 백엔드에서 수집 시각
-    private String source;        // URL
 
     public void update(Long eventCount, Long durationSec, LocalDateTime eventAt, LocalDateTime collectedAt) {
         this.eventCount = eventCount;
