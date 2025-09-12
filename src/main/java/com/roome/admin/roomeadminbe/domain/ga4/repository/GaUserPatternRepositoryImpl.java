@@ -22,7 +22,7 @@ public class GaUserPatternRepositoryImpl implements GaUserPatternRepositoryCusto
                         gaUserPattern.customUserId,
                         gaUserPattern.featureName,
                         gaUserPattern.eventCount.sum(),
-                        gaUserPattern.totalDuration.sum(),
+                        gaUserPattern.totalDuration.sum().as("usageTimeSec"),
                         Expressions.constant((String) null) // 응답에 필요한 값 -> 계산 후 return 할 때 필요(서비스 처리)
                 ))
                 .from(gaUserPattern)
