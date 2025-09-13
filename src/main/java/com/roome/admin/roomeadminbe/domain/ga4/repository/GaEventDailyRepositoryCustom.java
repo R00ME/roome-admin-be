@@ -11,12 +11,19 @@ import java.util.List;
 public interface GaEventDailyRepositoryCustom {
 
     String getInflowValue();
+
     String getInflowChangeRate();
+
     String getReferralValue();
+
     List<ChartResponse> getInflowChart();
+
     List<ChartResponse> getContentChart();
+
     List<ChartResponse> getReferralChart();
+
     String getMostEntryPath();
+
     List<ActivityTimeResponse> getUserActivityTime(String userId);
 
     List<FeatureUsageResponse> getFeatureUsageByUser(String customUserId);

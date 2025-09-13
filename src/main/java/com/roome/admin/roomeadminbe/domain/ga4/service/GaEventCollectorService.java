@@ -54,7 +54,7 @@ public class GaEventCollectorService {
                 String eventName = row.getDimensionValues(0).getValue();
                 String customUserId = row.getDimensionValues(1).getValue();
                 String timestampStr = row.getDimensionValues(2).getValue();
-                String  eventCategory = row.getDimensionValues(3).getValue();
+                String eventCategory = row.getDimensionValues(3).getValue();
                 String source = row.getDimensionValues(4).getValue();
                 String medium = row.getDimensionValues(5).getValue();
                 LocalDateTime eventAt = null;

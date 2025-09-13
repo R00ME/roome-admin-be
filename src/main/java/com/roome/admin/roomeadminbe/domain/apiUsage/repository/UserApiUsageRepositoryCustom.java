@@ -15,5 +15,6 @@ public interface UserApiUsageRepositoryCustom {
     Page<ApiUsageResponse> findAllBeforeDate(ApiUsageSearchRequest apiUsageSearchRequest, Pageable pageable);
 
     List<DomainCountResponse> findDomainCounts(Long userId, LocalDate from, LocalDate to);
+
     List<FeatureUsageResponse> getApiUsageByUser(Long userId);
 }

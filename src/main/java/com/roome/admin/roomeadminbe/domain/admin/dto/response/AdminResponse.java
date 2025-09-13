@@ -14,7 +14,7 @@ public class AdminResponse {
     private String name;
     private String email;
     private AdminRole role;
-    private LocalDateTime  createdAt;
+    private LocalDateTime createdAt;
 
     public static AdminResponse from(Admin admin) {
         return new AdminResponse(

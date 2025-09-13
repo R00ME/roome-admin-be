@@ -19,33 +19,33 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class FirstComeEventController {
 
-	private final FirstComeEventService firstComeEventService;
+    private final FirstComeEventService firstComeEventService;
 
-	// 이벤트 목록 조회
-	@GetMapping("/list")
-	public ResponseEntity<?> list(@ModelAttribute ListRequest listRequest){
+    // 이벤트 목록 조회
+    @GetMapping("/list")
+    public ResponseEntity<?> list(@ModelAttribute ListRequest listRequest) {
 
-		ListResponse<EventListResponseDTO> list = firstComeEventService.list(listRequest);
-		CommonResponse<ListResponse<EventListResponseDTO>> response = CommonResponse.success(list);
- 		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
+        ListResponse<EventListResponseDTO> list = firstComeEventService.list(listRequest);
+        CommonResponse<ListResponse<EventListResponseDTO>> response = CommonResponse.success(list);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
-	// 이벤트 생성
-	@PostMapping()
-	public ResponseEntity<?> registerEvent(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody EventRegisterRequestDTO eventRegisterRequestDTO){
+    // 이벤트 생성
+    @PostMapping()
+    public ResponseEntity<?> registerEvent(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody EventRegisterRequestDTO eventRegisterRequestDTO) {
 
-		firstComeEventService.registerEvent(eventRegisterRequestDTO, adminDetails.getUsername());
+        firstComeEventService.registerEvent(eventRegisterRequestDTO, adminDetails.getUsername());
 
-		return new ResponseEntity<>(HttpStatus.CREATED);
-	}
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 
-	// 이벤트 삭제
-	@DeleteMapping()
-	public ResponseEntity<?> deleteEvent(@RequestParam Long eventId){
+    // 이벤트 삭제
+    @DeleteMapping()
+    public ResponseEntity<?> deleteEvent(@RequestParam Long eventId) {
 
-		firstComeEventService.deleteEvent(eventId);
+        firstComeEventService.deleteEvent(eventId);
 
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 
 }

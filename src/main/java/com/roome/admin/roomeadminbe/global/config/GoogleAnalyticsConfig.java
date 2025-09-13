@@ -17,10 +17,9 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class GoogleAnalyticsConfig {
 
+    private final ResourceLoader resourceLoader;
     @Value("${ga4.credentials-file}")
     private String credentialsFile;
-
-    private final ResourceLoader resourceLoader;
 
     @Bean
     public BetaAnalyticsDataClient analyticsDataClient() throws IOException {

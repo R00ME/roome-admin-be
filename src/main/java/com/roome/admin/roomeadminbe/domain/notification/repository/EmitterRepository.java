@@ -13,15 +13,16 @@ public class EmitterRepository {
     //한 관리자 = 연결 1개
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    public SseEmitter save(Long adminId, SseEmitter emitter){
+    public SseEmitter save(Long adminId, SseEmitter emitter) {
         emitters.put(adminId, emitter);
         return emitter;
     }
 
-    public Optional<SseEmitter>get(Long adminId){
+    public Optional<SseEmitter> get(Long adminId) {
         return Optional.ofNullable(emitters.get(adminId));
     }
-    public void delete(Long adminId){
+
+    public void delete(Long adminId) {
         emitters.remove(adminId);
     }
 }

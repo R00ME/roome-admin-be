@@ -11,7 +11,7 @@ import java.util.List;
 import static com.roome.admin.roomeadminbe.domain.event.entity.QFirstComeEvent.firstComeEvent;
 
 @RequiredArgsConstructor
-public class FirstComeEventRepositoryImpl implements FirstComeEventRepositoryCustom{
+public class FirstComeEventRepositoryImpl implements FirstComeEventRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
@@ -38,7 +38,7 @@ public class FirstComeEventRepositoryImpl implements FirstComeEventRepositoryCus
                 )
                 .from(firstComeEvent)
                 .orderBy(firstComeEvent.id.desc())
-                .offset((long) (listRequest.getPage() - 1)* listRequest.getPageSize())
+                .offset((long) (listRequest.getPage() - 1) * listRequest.getPageSize())
                 .limit(listRequest.getPageSize())
                 .fetch();
     }

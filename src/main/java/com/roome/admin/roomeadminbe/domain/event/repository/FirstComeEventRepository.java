@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface FirstComeEventRepository extends JpaRepository<FirstComeEvent, Long>, FirstComeEventRepositoryCustom{
+public interface FirstComeEventRepository extends JpaRepository<FirstComeEvent, Long>, FirstComeEventRepositoryCustom {
 
 }
 

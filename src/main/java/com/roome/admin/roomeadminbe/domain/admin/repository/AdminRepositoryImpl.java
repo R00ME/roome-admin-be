@@ -25,7 +25,6 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @RequiredArgsConstructor
 public class AdminRepositoryImpl implements AdminRepositoryCustom {
 
-    private final JPAQueryFactory jpaQueryFactory;
     private static final Map<String, String> SORT_COLUMN_MAP = Map.of(
             "id", "adminId",
             "name", "adminName",
@@ -34,6 +33,7 @@ public class AdminRepositoryImpl implements AdminRepositoryCustom {
             "lastLogin", "lastLoginAt",
             "createdAt", "createdAt"
     );
+    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public Page<AdminResponse> findAll(AdminListRequest adminListRequest, Pageable pageable) {
