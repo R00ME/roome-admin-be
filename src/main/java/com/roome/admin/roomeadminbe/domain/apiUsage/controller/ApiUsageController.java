@@ -9,7 +9,7 @@ import com.roome.admin.roomeadminbe.domain.apiUsage.service.ApiUsageService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserActivityResponse;
-import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserPatternResponse;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserFeatureStatsResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.service.GaService;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse.ofDataWithHttpStatus;
 
@@ -58,13 +57,12 @@ public class ApiUsageController {
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping("/{userId}/feature-stats")
-    public ResponseEntity<CommonResponse<List<UserPatternResponse>>> getUserFeatureUsage(
+    public ResponseEntity<CommonResponse<UserFeatureStatsResponse>> getUserFeatureUsage(
             @AuthenticationPrincipal AdminDetails adminDetails,
             @PathVariable String userId) {
 
-        List<UserPatternResponse> usageList = gaService.getUserFeatureUsage(userId);
-
-        return CommonResponse.ofDataWithHttpStatus(usageList, HttpStatus.OK);
+        UserFeatureStatsResponse response = gaService.getUserFeatureUsage(userId);
+        return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")

@@ -1,5 +1,7 @@
 package com.roome.admin.roomeadminbe.domain.ga4.service;
 
+import com.roome.admin.roomeadminbe.domain.common.entity.User;
+import com.roome.admin.roomeadminbe.domain.common.repository.UserRepository;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.*;
 import com.roome.admin.roomeadminbe.domain.ga4.repository.GaEventDailyRepository;
 import com.roome.admin.roomeadminbe.domain.ga4.repository.GaFeatureStatRepository;
@@ -11,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -23,17 +24,28 @@ public class GaService {
     private final GaEventDailyRepository gaEventDailyRepository;
     private final GaFeatureStatRepository gaFeatureStatRepository;
     private final GaUserStatRepository gaUserStatRepository;
+    private final UserRepository userRepository;
 
-    public List<UserPatternResponse> getUserFeatureUsage(String userId) {
+    public UserFeatureStatsResponse getUserFeatureUsage(String userId) {
         List<UserPatternResponse> results = gaUserPatternRepository.getUserFeatureUsage(userId);
 
         if (results.isEmpty()) {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
+
         // 초 단위를 사람이 읽기 좋은 문자열로 변환
         results.forEach(response -> response.setUsageTime(formatDuration(response.getUsageTimeSec())));
 
-        return results;
+        // 닉네임 가져오기 (예시: UserRepository or AdminRepository)
+        String nickname = userRepository.findById(Long.parseLong(userId))
+                .map(User::getNickname)
+                .orElse("Unknown");
+
+        return UserFeatureStatsResponse.builder()
+                .userId(userId)
+                .nickname(nickname)
+                .featureStats(results)
+                .build();
     }
 
     public List<SummaryResponse> getSumaary() {

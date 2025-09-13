@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserPatternResponse {
-    private String customUserId;
     private String featureName;
     private Long eventCount;
     private Long usageTimeSec;

@@ -23,7 +23,6 @@ public class GaUserPatternRepositoryImpl implements GaUserPatternRepositoryCusto
         try {
             return jpaQueryFactory
                     .select(Projections.fields(UserPatternResponse.class,
-                            gaUserPattern.customUserId.as("customUserId"),
                             gaUserPattern.featureName.as("featureName"),
                             gaUserPattern.eventCount.sum().as("eventCount"),
                             gaUserPattern.totalDuration.sum().as("usageTimeSec"),
