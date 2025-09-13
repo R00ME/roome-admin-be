@@ -36,11 +36,6 @@ public class GaService {
         return results;
     }
 
-    public List<ActivityHourResponse> getActivitySummary(LocalDate date) {
-        return gaEventDailyRepository.getActivityByCustomRange(date);
-    }
-
-
     public List<SummaryResponse> getSumaary() {
 
         SummaryResponse mau = new SummaryResponse("월간 활성 사용자수(MAU)"
@@ -93,6 +88,14 @@ public class GaService {
         aiSummaryResponse.setMostDroppedFeature("가장 이탈률이 많은 기능은 "+gaFeatureStatRepository.getMostDroppedFeature()+" 입니다.");
         aiSummaryResponse.setMostEntryPath(gaEventDailyRepository.getMostEntryPath()+" 경로에서 가장 많은 사용자가 유입되었습니다.");
         return aiSummaryResponse;
+    }
+
+    public UserActivityResponse getUserActivity(String userId) {
+        List<ActivityTimeResponse> activityTime = gaEventDailyRepository.getUserActivityTime(userId);
+        return UserActivityResponse.builder()
+                .userId(userId)
+                .activityTime(activityTime)
+                .build();
     }
 
     private String formatDuration(Long seconds) {

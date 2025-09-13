@@ -8,6 +8,7 @@ import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.UserDomainStats
 import com.roome.admin.roomeadminbe.domain.apiUsage.service.ApiUsageService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserActivityResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserPatternResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.service.GaService;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
@@ -64,5 +65,14 @@ public class ApiUsageController {
         List<UserPatternResponse> usageList = gaService.getUserFeatureUsage(userId);
 
         return CommonResponse.ofDataWithHttpStatus(usageList, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @GetMapping("/{userId}/activity-time")
+    public ResponseEntity<CommonResponse<UserActivityResponse>> getUserActivity(
+            @PathVariable String userId) {
+
+        UserActivityResponse response = gaService.getUserActivity(userId);
+        return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 }
