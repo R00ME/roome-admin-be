@@ -27,6 +27,9 @@ public class GaService {
     public List<UserPatternResponse> getUserFeatureUsage(String userId) {
         List<UserPatternResponse> results = gaUserPatternRepository.getUserFeatureUsage(userId);
 
+        if (results.isEmpty()) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
         // 초 단위를 사람이 읽기 좋은 문자열로 변환
         results.forEach(response -> response.setUsageTime(formatDuration(response.getUsageTimeSec())));
 
@@ -37,12 +40,6 @@ public class GaService {
         return gaEventDailyRepository.getActivityByCustomRange(date);
     }
 
-    private String formatDuration(Long seconds) {
-        if (seconds == null) return "0m";
-        long hours = seconds / 3600;
-        long minutes = (seconds % 3600) / 60;
-        return hours > 0 ? hours + "H " + minutes + "m" : minutes + "m";
-    }
 
     public List<SummaryResponse> getSumaary() {
 
@@ -98,5 +95,19 @@ public class GaService {
         return aiSummaryResponse;
     }
 
+    private String formatDuration(Long seconds) {
+        if (seconds == null || seconds < 0) return "0s";
 
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+
+        if (hours > 0) {
+            return String.format("%dH %dm %ds", hours, minutes, secs);
+        } else if (minutes > 0) {
+            return String.format("%dm %ds", minutes, secs);
+        } else {
+            return String.format("%ds", secs);
+        }
+    }
 }

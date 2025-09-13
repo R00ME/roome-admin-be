@@ -9,7 +9,8 @@ public enum ErrorCode {
     PASSWORD_NOT_MATCHES("비밀번호가 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
     INVALID_INPUT_VALUE("유효하지 않은 요청값입니다.", HttpStatus.BAD_REQUEST),
     INVALID_JSON("json 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST),
-    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND );
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND ),
+    DATABASE_QUERY_FAILED("유효하지 않은 쿼리입니다.", HttpStatus.INTERNAL_SERVER_ERROR),;
 
     private final String message;
     private final HttpStatus status;

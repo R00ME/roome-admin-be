@@ -56,7 +56,7 @@ public class ApiUsageController {
     }
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
-    @GetMapping("/{userId}/user-feature-usage")
+    @GetMapping("/{userId}/feature-stats")
     public ResponseEntity<CommonResponse<List<UserPatternResponse>>> getUserFeatureUsage(
             @AuthenticationPrincipal AdminDetails adminDetails,
             @PathVariable String userId) {
