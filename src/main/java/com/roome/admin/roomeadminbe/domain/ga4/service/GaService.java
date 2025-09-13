@@ -93,9 +93,9 @@ public class GaService {
 
     public AiSummaryResponse getAiSummary(){
         AiSummaryResponse aiSummaryResponse = new AiSummaryResponse();
-        aiSummaryResponse.setMostUsedFeature("가장 많이 사용한 기능은 "+gaFeatureStatRepository.getMostUsedFeature()+" 입니다.");
-        aiSummaryResponse.setMostDroppedFeature("가장 이탈률이 많은 기능은 "+gaFeatureStatRepository.getMostDroppedFeature()+" 입니다.");
-        aiSummaryResponse.setMostEntryPath(gaEventDailyRepository.getMostEntryPath()+" 경로에서 가장 많은 사용자가 유입되었습니다.");
+        aiSummaryResponse.setMostUsedFeature(gaFeatureStatRepository.getMostUsedFeature());
+        aiSummaryResponse.setMostDroppedFeature(gaFeatureStatRepository.getMostDroppedFeature());
+        aiSummaryResponse.setMostEntryPath(gaEventDailyRepository.getMostEntryPath());
         return aiSummaryResponse;
     }
 
