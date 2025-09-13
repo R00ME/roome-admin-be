@@ -40,13 +40,13 @@ public class ApiUsageController {
     private final GaService gaService;
     private final PointUsageService pointUsageService;
 
-    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<CommonResponse<ListResponse<ApiUsageResponse>>> getApiUsageList(@AuthenticationPrincipal AdminDetails adminDetails, @ModelAttribute ApiUsageSearchRequest request) {
         return ofDataWithHttpStatus(apiUsageService.getApiUsageList(request), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping("/recent-user-activity")
     public ResponseEntity<CommonResponse<ListResponse<GetUserMostDomainResponse>>> getUsersMostUsedDomain(
             @ModelAttribute UserMostUsedDomainSearchRequest request) {
@@ -54,7 +54,7 @@ public class ApiUsageController {
         return ofDataWithHttpStatus(apiUsageService.getUsersMostUsedDomain(request), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping("/{userId}/user-domain-stats")
     public ResponseEntity<CommonResponse<UserDomainStatsResponse>> getUserDomainStats(@AuthenticationPrincipal AdminDetails adminDetails, @PathVariable Long userId) {
         LocalDate startDate = LocalDate.now();
@@ -62,7 +62,7 @@ public class ApiUsageController {
         return ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping("/{userId}/feature-stats")
     public ResponseEntity<CommonResponse<UserFeatureStatsResponse>> getUserFeatureUsage(
             @AuthenticationPrincipal AdminDetails adminDetails,
@@ -72,7 +72,7 @@ public class ApiUsageController {
         return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping("/{userId}/activity-time")
     public ResponseEntity<CommonResponse<UserActivityResponse>> getUserActivity(
             @PathVariable String userId) {
@@ -81,6 +81,7 @@ public class ApiUsageController {
         return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping("/{userId}/points/trend")
     public ResponseEntity<CommonResponse<UserPointTrendResponse>> getUserPointTrend(
             @PathVariable Long userId) {
@@ -89,7 +90,7 @@ public class ApiUsageController {
         return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping("/{userId}/feature-stats/details")
     public ResponseEntity<CommonResponse<Map<String, Object>>> getFeatureStats(
             @PathVariable Long userId) {

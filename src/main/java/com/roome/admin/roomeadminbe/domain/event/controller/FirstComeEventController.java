@@ -11,6 +11,7 @@ import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ public class FirstComeEventController {
 
     // 이벤트 목록 조회
     @GetMapping("/list")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<?> list(@ModelAttribute ListRequest listRequest) {
 
         ListResponse<EventListResponseDTO> list = firstComeEventService.list(listRequest);
@@ -32,6 +34,7 @@ public class FirstComeEventController {
 
     // 이벤트 생성
     @PostMapping()
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<?> registerEvent(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody EventRegisterRequestDTO eventRegisterRequestDTO) {
 
         firstComeEventService.registerEvent(eventRegisterRequestDTO, adminDetails.getUsername());
@@ -41,6 +44,7 @@ public class FirstComeEventController {
 
     // 이벤트 삭제
     @DeleteMapping()
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<?> deleteEvent(@RequestParam Long eventId) {
 
         firstComeEventService.deleteEvent(eventId);
