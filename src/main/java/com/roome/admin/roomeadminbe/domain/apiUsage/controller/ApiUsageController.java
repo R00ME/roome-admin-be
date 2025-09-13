@@ -10,6 +10,7 @@ import com.roome.admin.roomeadminbe.domain.apiUsage.service.ApiUsageService;
 import com.roome.admin.roomeadminbe.domain.apiUsage.service.PointUsageService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.response.FeatureUsageResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserActivityResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserFeatureStatsResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.service.GaService;
@@ -23,6 +24,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse.ofDataWithHttpStatus;
 
@@ -82,6 +86,20 @@ public class ApiUsageController {
             @PathVariable Long userId) {
 
         UserPointTrendResponse response = pointUsageService.getUserPointTrend(userId);
+        return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @GetMapping("/{userId}/feature-stats/details")
+    public ResponseEntity<CommonResponse<Map<String, Object>>> getFeatureStats(
+            @PathVariable Long userId) {
+
+        List<FeatureUsageResponse> featureStats = gaService.getFeatureStats(userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("userId", userId);
+        response.put("featureStats", featureStats);
+
         return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 }

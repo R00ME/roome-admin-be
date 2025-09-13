@@ -2,10 +2,12 @@ package com.roome.admin.roomeadminbe.domain.apiUsage.repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.ApiUsageSearchRequest;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.ApiUsageResponse;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.DomainCountResponse;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.response.FeatureUsageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,6 +73,24 @@ public class UserApiUsageRepositoryImpl implements UserApiUsageRepositoryCustom 
                         userApiUsage.userId.eq(userId),
                         userApiUsage.date.between(from, to)
                 )
+                .groupBy(userApiUsage.domain)
+                .fetch();
+    }
+
+
+    @Override
+    public List<FeatureUsageResponse> getApiUsageByUser(Long userId) {
+        return jpaQueryFactory
+                .select(Projections.constructor(FeatureUsageResponse.class,
+                        userApiUsage.domain,                      // feature
+                        userApiUsage.count.sum().coalesce(0L),   // apiRequestCount
+                        Expressions.constant(""),                 // usageTime (Service에서 세팅)
+                        Expressions.constant(0L),                 // usageTimeSec → 0 기본값
+                        userApiUsage.date.max(),                  // lastUsedAt
+                        Expressions.constant(0L)                  // contentCount (옵션)
+                ))
+                .from(userApiUsage)
+                .where(userApiUsage.userId.eq(userId))
                 .groupBy(userApiUsage.domain)
                 .fetch();
     }

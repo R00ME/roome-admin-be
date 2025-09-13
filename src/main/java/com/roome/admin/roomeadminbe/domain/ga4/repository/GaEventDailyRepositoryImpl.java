@@ -1,12 +1,15 @@
 package com.roome.admin.roomeadminbe.domain.ga4.repository;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.ActivityTimeResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.ChartResponse;
+import com.roome.admin.roomeadminbe.domain.ga4.dto.response.FeatureUsageResponse;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
@@ -307,5 +310,26 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    public List<FeatureUsageResponse> getFeatureUsageByUser(String customUserId) {
+        return jpaQueryFactory
+                .select(Projections.fields(FeatureUsageResponse.class,
+                        gaEventDaily.featureName.as("feature"),
+                        ExpressionUtils.as(gaEventDaily.eventCount.sum().coalesce(0L), "apiRequestCount"),
+                        ExpressionUtils.as(Expressions.constant(""), "usageTime"), // 서비스에서 세팅
+                        ExpressionUtils.as(gaEventDaily.durationSec.sum().coalesce(0L), "usageTimeSec"),
+                        gaEventDaily.statDate.max().as("lastUsedAt"),
+                        ExpressionUtils.as(Expressions.constant(0L), "contentCount")
+                ))
+                .from(gaEventDaily)
+                .where(
+                        gaEventDaily.customUserId.eq(customUserId),
+                        gaEventDaily.featureName.in("cd", "book", "guestbook", "comment", "theme"),
+                        gaEventDaily.eventName.endsWith("_usage")
+                )
+                .groupBy(gaEventDaily.featureName)
+                .fetch();
     }
 }

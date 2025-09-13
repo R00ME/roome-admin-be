@@ -1,5 +1,6 @@
 package com.roome.admin.roomeadminbe.domain.ga4.service;
 
+import com.roome.admin.roomeadminbe.domain.apiUsage.repository.UserApiUsageRepository;
 import com.roome.admin.roomeadminbe.domain.common.entity.User;
 import com.roome.admin.roomeadminbe.domain.common.repository.UserRepository;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.*;
@@ -13,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class GaService {
     private final GaFeatureStatRepository gaFeatureStatRepository;
     private final GaUserStatRepository gaUserStatRepository;
     private final UserRepository userRepository;
+    private final UserApiUsageRepository userApiUsageRepository;
 
     public UserFeatureStatsResponse getUserFeatureUsage(String userId) {
         List<UserPatternResponse> results = gaUserPatternRepository.getUserFeatureUsage(userId);
@@ -108,6 +112,58 @@ public class GaService {
                 .userId(userId)
                 .activityTime(activityTime)
                 .build();
+    }
+
+    public List<FeatureUsageResponse> getFeatureStats(Long userId) {
+        // String 변환 (GaEventDaily 쿼리에 필요)
+        String customUserId = String.valueOf(userId);
+
+        // 각각 쿼리 실행
+        List<FeatureUsageResponse> apiUsage = userApiUsageRepository.getApiUsageByUser(userId);
+        List<FeatureUsageResponse> featureUsage = gaEventDailyRepository.getFeatureUsageByUser(customUserId);
+
+        // feature 기준으로 merge
+        Map<String, FeatureUsageResponse> merged = new HashMap<>();
+
+        // apiUsage 추가
+        apiUsage.forEach(stat -> merged.put(stat.getFeature(), stat));
+
+        // featureUsage 병합
+        featureUsage.forEach(feature -> {
+            // usageTime 변환
+            String usageTime = formatDuration(feature.getUsageTimeSec());
+            feature.setUsageTime(usageTime);
+
+            merged.merge(feature.getFeature(), feature, (api, fe) -> {
+                // apiRequestCount 합산
+                Long totalApiCount =
+                        Optional.ofNullable(api.getApiRequestCount()).orElse(0L) +
+                                Optional.ofNullable(fe.getApiRequestCount()).orElse(0L);
+
+                // usageTimeSec (featureUsage 기준)
+                Long usageTimeSec = Optional.ofNullable(fe.getUsageTimeSec()).orElse(0L);
+
+                // 최근 사용일자 (둘 중 최신)
+                LocalDate lastUsedAt = Stream.of(api.getLastUsedAt(), fe.getLastUsedAt())
+                        .filter(Objects::nonNull)
+                        .max(LocalDate::compareTo)
+                        .orElse(null);
+
+                // contentCount (현재 apiUsage 기준, 필요하면 합산 가능)
+                Long contentCount = Optional.ofNullable(api.getContentCount()).orElse(0L);
+
+                return FeatureUsageResponse.builder()
+                        .feature(api.getFeature())
+                        .apiRequestCount(totalApiCount)
+                        .usageTime(formatDuration(usageTimeSec)) // 변환된 usageTime
+                        .usageTimeSec(usageTimeSec)
+                        .lastUsedAt(lastUsedAt)
+                        .contentCount(contentCount)
+                        .build();
+            });
+        });
+
+        return new ArrayList<>(merged.values());
     }
 
     private String formatDuration(Long seconds) {
