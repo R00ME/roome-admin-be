@@ -11,12 +11,12 @@ import com.roome.admin.roomeadminbe.domain.ga4.dto.response.ActivityTimeResponse
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.ChartResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.FeatureUsageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +35,7 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
                 .from(gaEventDaily)
                 .where(
                         gaEventDaily.eventName.eq("first_visit"),
-                        gaEventDaily.statDate.eq(LocalDate.now()) // 오늘 날짜
+                        gaEventDaily.statDate.eq(LocalDate.now().minusDays(1)) // 오늘 날짜
                 )
                 .fetchOne();
 
@@ -49,7 +49,7 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
                 .from(gaEventDaily)
                 .where(
                         gaEventDaily.eventName.eq("first_visit"),
-                        gaEventDaily.statDate.eq(LocalDate.now()) // 오늘 날짜
+                        gaEventDaily.statDate.eq(LocalDate.now().minusDays(1)) // 오늘 날짜
                 )
                 .fetchOne();
 
@@ -60,7 +60,7 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
                 .from(gaEventDaily)
                 .where(
                         gaEventDaily.eventName.eq("first_visit"),
-                        gaEventDaily.statDate.eq(LocalDate.now().minusDays(1)) // 어제 날짜
+                        gaEventDaily.statDate.eq(LocalDate.now().minusDays(2)) // 어제 날짜
                 )
                 .fetchOne();
 
@@ -95,35 +95,45 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
 
     @Override
     public List<ChartResponse> getInflowChart() {
+        List<ChartResponse> result = new ArrayList<>();
         LocalDate today = LocalDate.now();
 
         // 오늘 ~ 6일 전까지 날짜 리스트
-        List<LocalDate> targets = new ArrayList<>();
-        for (int i = 0; i <= 6; i++) {
+        for (int i = 1; i <= 7; i++) {
+            List<LocalDate> targets = new ArrayList<>();
             targets.add(today.minusDays(i));
+
+            NumberExpression<Long> sumEventCount = gaEventDaily.eventCount.sum();
+
+            List<Tuple> rows = jpaQueryFactory
+                    .select(gaEventDaily.statDate, sumEventCount)
+                    .from(gaEventDaily)
+                    .where(
+                            gaEventDaily.eventName.eq("first_visit"),
+                            gaEventDaily.statDate.in(targets)
+                    )
+                    .groupBy(gaEventDaily.statDate)
+                    .orderBy(gaEventDaily.statDate.asc())
+                    .fetch();
+
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            List<ChartResponse> oneRow = rows.stream()
+                    .map(t -> new ChartResponse(
+                            t.get(gaEventDaily.statDate).format(fmt),   // xLabels
+                            String.valueOf(t.get(sumEventCount))        // value
+                    ))
+                    .toList();
+
+            if (ObjectUtils.isEmpty(oneRow)) {
+                result.add(new ChartResponse(today.minusDays(i).format(fmt)
+                        , String.valueOf(0)));
+            } else {
+                result.addAll(oneRow);
+            }
+
         }
-
-        NumberExpression<Long> sumEventCount = gaEventDaily.eventCount.sum();
-
-        List<Tuple> rows = jpaQueryFactory
-                .select(gaEventDaily.statDate, sumEventCount)
-                .from(gaEventDaily)
-                .where(
-                        gaEventDaily.eventName.eq("first_visit"),
-                        gaEventDaily.statDate.in(targets)
-                )
-                .groupBy(gaEventDaily.statDate)
-                .orderBy(gaEventDaily.statDate.asc())
-                .fetch();
-
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        return rows.stream()
-                .map(t -> new ChartResponse(
-                        t.get(gaEventDaily.statDate).format(fmt),   // xLabels
-                        String.valueOf(t.get(sumEventCount))        // value
-                ))
-                .toList();
+        return result;
     }
 
     @Override
@@ -171,44 +181,46 @@ public class GaEventDailyRepositoryImpl implements GaEventDailyRepositoryCustom 
     @Override
     public List<ChartResponse> getReferralChart() {
         LocalDate today = LocalDate.now();
-        DateTimeFormatter ymFmt = DateTimeFormatter.ofPattern("yyyy-MM");
-
         List<ChartResponse> results = new ArrayList<>();
 
-        // 0 ~ 6개월 전까지 반복
-        for (int i = 0; i <= 6; i++) {
-            LocalDate startOfMonth = today.withDayOfMonth(1).minusMonths(i);
-            LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
+        LocalDate startDate = today.minusDays(1);
+        LocalDate endDate = today.minusDays(7);
 
-            NumberExpression<Long> sumEventCount = gaEventDaily.eventCount.sum();
+        NumberExpression<Long> sumEventCount = gaEventDaily.eventCount.sum();
 
-            Tuple row = jpaQueryFactory
-                    .select(gaEventDaily.source, sumEventCount)
-                    .from(gaEventDaily)
-                    .where(
-                            gaEventDaily.eventName.eq("traffic_source"),
-                            gaEventDaily.statDate.goe(startOfMonth),
-                            gaEventDaily.statDate.lt(startOfNextMonth)
-                    )
-                    .groupBy(gaEventDaily.source)
-                    .orderBy(sumEventCount.desc())
-                    .fetchFirst(); // limit 1
+        List<Tuple> rows = jpaQueryFactory
+                .select(gaEventDaily.source, sumEventCount)
+                .from(gaEventDaily)
+                .where(
+                        gaEventDaily.eventName.eq("traffic_source"),
+                        gaEventDaily.statDate.loe(startDate),
+                        gaEventDaily.statDate.goe(endDate)
+                )
+                .groupBy(gaEventDaily.source)
+                .orderBy(sumEventCount.desc())
+                .limit(7)
+                .fetch();
 
-            if (row != null) {
-                String topSource = row.get(gaEventDaily.source);
-                Long count = row.get(sumEventCount);
+        results.addAll(rows.stream()
+                .map(t -> new ChartResponse(
+                        t.get(gaEventDaily.source),                 // xLabels
+                        String.valueOf(t.get(sumEventCount))        // value
+                ))
+                .toList());
 
-                results.add(new ChartResponse(
-                        startOfMonth.format(ymFmt),          // xLabels = 해당 월 (yyyy-MM)
-                        topSource        // value = 소스명
-                ));
+        if (results.size() < 7) {
+            int emptySize = 7 - results.size();
+            for (int i = 1; i <= emptySize; i++) {
+                results.add(new ChartResponse(null, null));
+            }
+        } else if (ObjectUtils.isEmpty(results)) {
+            for (int i = 1; i <= 7; i++) {
+                results.add(new ChartResponse(null, null));
             }
         }
 
-        // 과거→현재 순으로 정렬
-        return results.stream()
-                .sorted(Comparator.comparing(ChartResponse::getXLabels))
-                .toList();
+
+        return results;
     }
 
     @Override
