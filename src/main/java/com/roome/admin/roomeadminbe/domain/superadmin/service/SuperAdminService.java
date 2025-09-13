@@ -28,20 +28,30 @@ public class SuperAdminService {
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void inviteAdmin(InviteAdminRequest inviteAdminRequestDto) {
+    public void inviteAdmin(InviteAdminRequest inviteAdminRequest) {
 
         String tempPassword = generateRandomPassword();
-        String checkEmail = inviteAdminRequestDto.getAdminEmail();
+        String encodedPassword = passwordEncoder.encode(tempPassword);
+        String checkEmail = inviteAdminRequest.getAdminEmail();
 
-        if(adminRepository.existsByAdminEmail(checkEmail)){
-            throw new BusinessException(ErrorCode.EXISTS_ADMIN);
+        if (adminRepository.existsByAdminEmail(checkEmail)) {
+            Admin admin = adminRepository.findByAdminEmail(checkEmail).orElse(null);
+            assert admin != null;
+            if (admin.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
+                throw new BusinessException(ErrorCode.EXISTS_ADMIN);
+            } else {
+                admin.changeStatus(inviteAdminRequest, encodedPassword);
+                mailService.sendInvitationWithTempPasswordEmail(inviteAdminRequest.getAdminEmail(), tempPassword);
+                return;
+            }
         }
 
+
         Admin newAdmin = Admin.builder()
-                .adminRole(inviteAdminRequestDto.getAdminRole())
-                .adminName(inviteAdminRequestDto.getAdminName())
-                .adminEmail(inviteAdminRequestDto.getAdminEmail())
-                .phoneNumber(inviteAdminRequestDto.getPhoneNumber())
+                .adminRole(inviteAdminRequest.getAdminRole())
+                .adminName(inviteAdminRequest.getAdminName())
+                .adminEmail(inviteAdminRequest.getAdminEmail())
+                .phoneNumber(inviteAdminRequest.getPhoneNumber())
                 .activationStatus(ActivationStatus.ACTIVE)
                 .password(passwordEncoder.encode(tempPassword))
                 .deletedAt(null)
@@ -49,7 +59,7 @@ public class SuperAdminService {
                 .status(null)
                 .build();
         adminRepository.save(newAdmin);
-        mailService.sendInvitationWithTempPasswordEmail(inviteAdminRequestDto.getAdminEmail(), tempPassword);
+        mailService.sendInvitationWithTempPasswordEmail(inviteAdminRequest.getAdminEmail(), tempPassword);
     }
 
     public AdminListResponse getAdminList(AdminListRequest adminListRequest) {

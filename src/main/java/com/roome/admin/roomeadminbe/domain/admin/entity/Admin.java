@@ -2,6 +2,7 @@ package com.roome.admin.roomeadminbe.domain.admin.entity;
 
 import com.roome.admin.roomeadminbe.domain.admin.dto.request.UpdateAdminInfoRequest;
 import com.roome.admin.roomeadminbe.domain.common.entity.Timestamped;
+import com.roome.admin.roomeadminbe.domain.superadmin.dto.request.InviteAdminRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,4 +52,17 @@ public class Admin extends Timestamped {
         this.activationStatus = ActivationStatus.INACTIVE;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void changeStatus(InviteAdminRequest inviteAdminRequest, String encodedPassword) {
+        this.adminRole = inviteAdminRequest.getAdminRole();
+        this.adminName = inviteAdminRequest.getAdminName();
+        this.adminEmail = inviteAdminRequest.getAdminEmail();
+        this.phoneNumber = inviteAdminRequest.getPhoneNumber();
+        this.activationStatus = ActivationStatus.ACTIVE;
+        this.password = encodedPassword;
+        this.deletedAt = null;
+        this.lastLoginAt = null;
+        this.status = null;
+    }
+
 }
