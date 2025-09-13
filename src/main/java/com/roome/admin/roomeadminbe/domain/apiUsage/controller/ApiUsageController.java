@@ -5,7 +5,9 @@ import com.roome.admin.roomeadminbe.domain.apiUsage.dto.request.UserMostUsedDoma
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.ApiUsageResponse;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.GetUserMostDomainResponse;
 import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.UserDomainStatsResponse;
+import com.roome.admin.roomeadminbe.domain.apiUsage.dto.response.UserPointTrendResponse;
 import com.roome.admin.roomeadminbe.domain.apiUsage.service.ApiUsageService;
+import com.roome.admin.roomeadminbe.domain.apiUsage.service.PointUsageService;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.CommonResponse;
 import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.domain.ga4.dto.response.UserActivityResponse;
@@ -32,6 +34,7 @@ public class ApiUsageController {
 
     private final ApiUsageService apiUsageService;
     private final GaService gaService;
+    private final PointUsageService pointUsageService;
 
     @PreAuthorize("hasRole('OPERATION_MANAGER')")
     @GetMapping
@@ -71,6 +74,14 @@ public class ApiUsageController {
             @PathVariable String userId) {
 
         UserActivityResponse response = gaService.getUserActivity(userId);
+        return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/{userId}/points/trend")
+    public ResponseEntity<CommonResponse<UserPointTrendResponse>> getUserPointTrend(
+            @PathVariable Long userId) {
+
+        UserPointTrendResponse response = pointUsageService.getUserPointTrend(userId);
         return CommonResponse.ofDataWithHttpStatus(response, HttpStatus.OK);
     }
 }
