@@ -36,7 +36,8 @@ public class AdminRepositoryImpl implements AdminRepositoryCustom {
                         admin.adminId,
                         admin.adminName,
                         admin.adminEmail,
-                        admin.adminRole))
+                        admin.adminRole,
+                        admin.createdAt))
                 .from(admin)
                 .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
                 .where(adminRoleEq(adminListRequest.getRole()))

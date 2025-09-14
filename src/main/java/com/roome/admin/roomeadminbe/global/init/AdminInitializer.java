@@ -6,7 +6,6 @@ import com.roome.admin.roomeadminbe.domain.admin.entity.AdminRole;
 import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 //@Configuration

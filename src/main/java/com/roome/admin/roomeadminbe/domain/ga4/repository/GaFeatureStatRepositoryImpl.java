@@ -63,7 +63,7 @@ public class GaFeatureStatRepositoryImpl implements GaFeatureStatRepositoryCusto
                 )
                 .fetchOne();
         lastMonth = lastMonth == null ? 0L : lastMonth;
-        if(lastMonth == 0L ) return null;
+        if (lastMonth == 0L) return null;
         Double result = ((double) (thisMonth - lastMonth) / (double) lastMonth);
 
         return String.valueOf(result);
@@ -146,6 +146,6 @@ public class GaFeatureStatRepositoryImpl implements GaFeatureStatRepositoryCusto
             return null;
         }
 
-        return  row.get(gaFeatureStat.eventName);
+        return row.get(gaFeatureStat.eventName);
     }
 }

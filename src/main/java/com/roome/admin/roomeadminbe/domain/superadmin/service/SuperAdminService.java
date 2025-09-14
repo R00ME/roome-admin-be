@@ -46,7 +46,6 @@ public class SuperAdminService {
             }
         }
 
-
         Admin newAdmin = Admin.builder()
                 .adminRole(inviteAdminRequest.getAdminRole())
                 .adminName(inviteAdminRequest.getAdminName())

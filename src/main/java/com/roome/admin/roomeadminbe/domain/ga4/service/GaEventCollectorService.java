@@ -41,8 +41,10 @@ public class GaEventCollectorService {
                 .addDimensions(Dimension.newBuilder().setName("customEvent:custom_user_id"))
                 .addDimensions(Dimension.newBuilder().setName("customEvent:timestamp")) // 프론트에서 보낸 timestamp
                 .addDimensions(Dimension.newBuilder().setName("customEvent:event_category")) // custom
-                .addDimensions(Dimension.newBuilder().setName("sessionSource"))              // 기본 제공
-                .addDimensions(Dimension.newBuilder().setName("sessionMedium"))
+//                .addDimensions(Dimension.newBuilder().setName("sessionSource"))              // 기본 제공
+//                .addDimensions(Dimension.newBuilder().setName("sessionMedium"))
+                .addDimensions(Dimension.newBuilder().setName("customEvent:source"))
+                .addDimensions(Dimension.newBuilder().setName("customEvent:medium"))
                 .addMetrics(Metric.newBuilder().setName("eventCount"))
                 .addMetrics(Metric.newBuilder().setName("customEvent:duration_sec"))
                 .build();
@@ -54,7 +56,7 @@ public class GaEventCollectorService {
                 String eventName = row.getDimensionValues(0).getValue();
                 String customUserId = row.getDimensionValues(1).getValue();
                 String timestampStr = row.getDimensionValues(2).getValue();
-                String  eventCategory = row.getDimensionValues(3).getValue();
+                String eventCategory = row.getDimensionValues(3).getValue();
                 String source = row.getDimensionValues(4).getValue();
                 String medium = row.getDimensionValues(5).getValue();
                 LocalDateTime eventAt = null;

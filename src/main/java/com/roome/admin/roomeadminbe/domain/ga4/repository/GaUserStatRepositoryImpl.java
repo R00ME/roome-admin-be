@@ -121,17 +121,17 @@ public class GaUserStatRepositoryImpl implements GaUserStatRepositoryCustom {
 
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-            List<ChartResponse> oneRow =  rows.stream()
+            List<ChartResponse> oneRow = rows.stream()
                     .map(t -> new ChartResponse(
                             t.get(gaUserStat.statDate).format(fmt),                // xLabels
                             String.valueOf(t.get(sumEventCount))                     // value
                     ))
                     .toList();
 
-            if(ObjectUtils.isEmpty(oneRow)){
+            if (ObjectUtils.isEmpty(oneRow)) {
                 result.add(new ChartResponse(today.minusDays(1).minusMonths(i).format(fmt)
                         , String.valueOf(0)));
-            }else{
+            } else {
                 result.addAll(oneRow);
             }
 
@@ -166,17 +166,17 @@ public class GaUserStatRepositoryImpl implements GaUserStatRepositoryCustom {
 
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-            List<ChartResponse> oneRow =  rows.stream()
+            List<ChartResponse> oneRow = rows.stream()
                     .map(t -> new ChartResponse(
                             t.get(gaUserStat.statDate).format(fmt),   // xLabels
                             String.valueOf(t.get(sumEventCount))        // value
                     ))
                     .toList();
 
-            if(ObjectUtils.isEmpty(oneRow)){
+            if (ObjectUtils.isEmpty(oneRow)) {
                 result.add(new ChartResponse(today.minusDays(i).format(fmt)
                         , String.valueOf(0)));
-            }else{
+            } else {
                 result.addAll(oneRow);
             }
 

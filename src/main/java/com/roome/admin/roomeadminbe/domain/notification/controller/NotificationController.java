@@ -25,9 +25,9 @@ import java.util.Map;
 @RequestMapping("/api/admin/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
+    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
     private final AdminRepository adminRepository;
-    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final SseService sseService;
 
 

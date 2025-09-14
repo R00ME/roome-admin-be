@@ -51,5 +51,5 @@ out/
 ### Dockrefile ###
 Dockerfile
 
-### ga json ###
-/ga/*.json
+### Ga json ###
+ga/*.json
