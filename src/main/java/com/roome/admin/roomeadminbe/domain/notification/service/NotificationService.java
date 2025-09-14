@@ -39,13 +39,27 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NotificationService {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    //*********공통 : 정렬/타입존 유틸
+    private static final ZoneOffset UTC = ZoneOffset.UTC;
+    private static final DateTimeFormatter ISO_IN_UTC = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    /**
+     * createdAt desc, tie-break notificationId desc
+     */
+    private static final Comparator<Notification> LATEST_FIRST =
+            Comparator.comparing(Notification::getCreatedAt).reversed()
+                    .thenComparing(Comparator.comparing(Notification::getNotificationId).reversed());
     private final NotificationRepository notificationRepository;
     private final AdminNotificationRepository adminNotificationRepository;
     private final AdminRepository adminRepository;
-
-    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private final SseService sseService;
+    @PersistenceContext
+    private EntityManager em;
+    @Value("${notification.cleanup.enabled:false}")
+    private boolean cleanupEnabled;
+    @Value("${notification.cleanup.retention-days:30}")
+    private int retentionDays;
 
     // 구독은 SseService로 위임
     public SseEmitter subscribe(Long adminId) {
@@ -56,17 +70,6 @@ public class NotificationService {
     public void sendToClient(Long adminId, NotificationResponseDto dto) {
         sseService.send(adminId, dto);
     }
-
-    //*********공통 : 정렬/타입존 유틸
-    private static final ZoneOffset UTC = ZoneOffset.UTC;
-    private static final DateTimeFormatter ISO_IN_UTC = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
-    /**
-     * createdAt desc, tie-break notificationId desc
-     */
-    private static final Comparator<Notification> LATEST_FIRST =
-            Comparator.comparing(Notification::getCreatedAt).reversed()
-                    .thenComparing(Comparator.comparing(Notification::getNotificationId).reversed());
 
     private List<Notification> sortLatest(List<Notification> list) {
         return list.stream().sorted(LATEST_FIRST).toList();
@@ -159,7 +162,6 @@ public class NotificationService {
         return toGroupedResponse(list);
     }
 
-
     //내 알림함 응답 시 날짜별 그룹
     private Map<String, List<Map<String, Object>>> groupByDate(List<Notification> list) {
         return list.stream()
@@ -217,6 +219,8 @@ public class NotificationService {
         return new NotificationResponseDto(saved);
     }
 
+    //*****스케줄러/자동삭제*******
+
     public NotificationResponseDto publishForSelf(String email,
                                                   String title,
                                                   String content,
@@ -251,17 +255,6 @@ public class NotificationService {
         notificationRepository.markAllAsReadByAdminId(me.getAdminId());
         return "전체 알림이 읽음 처리되었습니다.";
     }
-
-    //*****스케줄러/자동삭제*******
-
-    @PersistenceContext
-    private EntityManager em;
-
-    @Value("${notification.cleanup.enabled:false}")
-    private boolean cleanupEnabled;
-
-    @Value("${notification.cleanup.retention-days:30}")
-    private int retentionDays;
 
     // 매월 1일 04:30 KST (yml 값 사용, 일관성 유지)
     @Scheduled(cron = "${notification.cleanup.cron}", zone = "Asia/Seoul")

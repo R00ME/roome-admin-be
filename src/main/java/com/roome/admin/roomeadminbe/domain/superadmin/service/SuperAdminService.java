@@ -33,7 +33,7 @@ public class SuperAdminService {
         String tempPassword = generateRandomPassword();
         String checkEmail = inviteAdminRequestDto.getAdminEmail();
 
-        if(adminRepository.existsByAdminEmail(checkEmail)){
+        if (adminRepository.existsByAdminEmail(checkEmail)) {
             throw new BusinessException(ErrorCode.EXISTS_ADMIN);
         }
 

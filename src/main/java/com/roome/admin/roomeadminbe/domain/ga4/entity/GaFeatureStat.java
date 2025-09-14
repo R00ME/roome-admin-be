@@ -12,7 +12,8 @@ import java.time.LocalDate;
 @Builder
 @Table(name = "ga_feature_stat")
 public class GaFeatureStat {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String eventName;     // 이벤트명
     private LocalDate statDate;   // 집계 일자

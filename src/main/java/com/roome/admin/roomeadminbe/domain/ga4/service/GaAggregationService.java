@@ -25,6 +25,13 @@ public class GaAggregationService {
     private final GaFeatureStatRepository featureStatRepo;
     private final GaUserPatternRepository userPatternRepo;
 
+    private static String extractFeatureName(String eventName) {
+        if (eventName == null || !eventName.endsWith("_usage")) {
+            return null;
+        }
+        return eventName.substring(0, eventName.length() - "_usage".length());
+    }
+
     @Transactional
     public void aggregate(LocalDate date) {
         // 해당 날짜 데이터 조회
@@ -97,12 +104,5 @@ public class GaAggregationService {
                             .lastUseAt(lastUseAt)
                             .build());
                 });
-    }
-
-    private static String extractFeatureName(String eventName) {
-        if (eventName == null || !eventName.endsWith("_usage")) {
-            return null;
-        }
-        return eventName.substring(0, eventName.length() - "_usage".length());
     }
 }

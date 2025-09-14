@@ -6,9 +6,14 @@ import java.util.List;
 
 public interface GaUserStatRepositoryCustom {
     String getMauValue();
+
     String getMauChangeRate();
+
     String getDauValue();
+
     String getDauChangeRate();
+
     List<ChartResponse> getMauChart();
+
     List<ChartResponse> getDauChart();
 }
