@@ -1,6 +1,5 @@
 package com.roome.admin.roomeadminbe.domain.notification.controller;
 
-import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
 import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationRequestDto;
 import com.roome.admin.roomeadminbe.domain.notification.dto.NotificationResponseDto;
@@ -10,6 +9,8 @@ import com.roome.admin.roomeadminbe.global.exception.BusinessException;
 import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,9 +19,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/admin/notifications")
@@ -60,7 +58,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotificationsByAdminId(adminId));
     }
 
-    /** 4) 내 알림함 조회 */
+    /** * 4) 내 알림함 조회 */
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyNotifications(
             @AuthenticationPrincipal AdminDetails adminDetails
@@ -75,10 +73,10 @@ public class NotificationController {
     }
 
 
-    /** 5) SSE 구독: 본인 채널만 구독 가능 */
+    /** * 5) SSE 구독: 본인 채널만 구독 가능 */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal AdminDetails admin) {
-        if (admin == null || admin.getAdminId() == null){
+        if (admin == null || admin.getAdminId() == null) {
             throw new RuntimeException("인증 정보가 없습니다.");
         }
 
@@ -90,7 +88,7 @@ public class NotificationController {
     @PutMapping("/allread")
     public ResponseEntity<Map<String, String>> markAllAsRead(
             @AuthenticationPrincipal AdminDetails adminDetails
-    ){
+    ) {
         if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
         String email = adminDetails.getUsername();
 
@@ -100,12 +98,12 @@ public class NotificationController {
     }
 
     //단일 읽음 조회
-   @PatchMapping("/{notificationId}/read")
+    @PatchMapping("/{notificationId}/read")
     public ResponseEntity<Map<String, String>> markAsRead(
             @PathVariable Long notificationId,
             @AuthenticationPrincipal AdminDetails adminDetails
-   ){
-        if (adminDetails == null){
+    ) {
+        if (adminDetails == null) {
             throw new RuntimeException("인증 정보가 없습니다.");
         }
         String email = adminDetails.getUsername();
@@ -119,9 +117,9 @@ public class NotificationController {
         if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
         String email = adminDetails.getUsername();
         return notificationService.getUnreadGrouped(email);
-   }
+    }
 
-   //긴급 조회
+    //긴급 조회
     @GetMapping("/urgent")
     public Map<String, Object> getUrgent(@AuthenticationPrincipal AdminDetails adminDetails){
         if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);

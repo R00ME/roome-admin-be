@@ -42,10 +42,16 @@ public class SseService {
         emitterRepository.save(adminId, emitter);
 
         // 초기 코멘트(연결 확인 및 일부 프록시 버퍼링 회피)
-        try { emitter.send(SseEmitter.event().comment("connected")); } catch (IOException ignore) {}
+        try {
+            emitter.send(SseEmitter.event().comment("connected"));
+        } catch (IOException ignore) {
+        }
         return emitter;
     }
-    /** 특정 관리자에게만 전송 (브로드캐스트 아님) */
+
+    /**
+     * 특정 관리자에게만 전송 (브로드캐스트 아님)
+     */
     public void send(Long adminId, NotificationResponseDto dto) {
         emitterRepository.get(adminId).ifPresentOrElse(emitter -> {
             try {
@@ -56,14 +62,19 @@ public class SseService {
                         .reconnectTime(3000);
                 emitter.send(event);
             } catch (IOException | IllegalStateException e) {
-                try { emitter.completeWithError(e); } catch (Exception ignore) {}
+                try {
+                    emitter.completeWithError(e);
+                } catch (Exception ignore) {
+                }
                 cleanup(adminId, "send-failed");
             }
         }, () -> log.info("[SSE] no active emitter (adminId={})", adminId));
     }
+
     public void sendToClient(Long adminId, NotificationResponseDto dto) {
         send(adminId, dto);
     }
+
     private void cleanup(Long adminId, String reason) {
         emitterRepository.delete(adminId);
         log.info("[SSE] cleaned emitter (adminId={}, reason={})", adminId, reason);

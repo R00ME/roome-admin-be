@@ -7,6 +7,8 @@ import com.roome.admin.roomeadminbe.domain.admin.entity.ActivationStatus;
 import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
 import com.roome.admin.roomeadminbe.domain.admin.repository.AdminRepository;
 import com.roome.admin.roomeadminbe.domain.superadmin.dto.request.InviteAdminRequest;
+import com.roome.admin.roomeadminbe.global.exception.BusinessException;
+import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import com.roome.admin.roomeadminbe.global.mail.MailService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,11 @@ public class SuperAdminService {
     public void inviteAdmin(InviteAdminRequest inviteAdminRequestDto) {
 
         String tempPassword = generateRandomPassword();
+        String checkEmail = inviteAdminRequestDto.getAdminEmail();
+
+        if (adminRepository.existsByAdminEmail(checkEmail)) {
+            throw new BusinessException(ErrorCode.EXISTS_ADMIN);
+        }
 
         Admin newAdmin = Admin.builder()
                 .adminRole(inviteAdminRequestDto.getAdminRole())

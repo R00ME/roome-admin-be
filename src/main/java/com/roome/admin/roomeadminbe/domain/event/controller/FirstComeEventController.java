@@ -7,11 +7,12 @@ import com.roome.admin.roomeadminbe.domain.common.dto.response.ListResponse;
 import com.roome.admin.roomeadminbe.domain.event.dto.EventListResponseDTO;
 import com.roome.admin.roomeadminbe.domain.event.dto.EventRegisterRequestDTO;
 import com.roome.admin.roomeadminbe.domain.event.service.FirstComeEventService;
+import com.roome.admin.roomeadminbe.global.security.model.AdminDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,33 +20,36 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class FirstComeEventController {
 
-	private final FirstComeEventService firstComeEventService;
+    private final FirstComeEventService firstComeEventService;
 
-	// 이벤트 목록 조회
-	@GetMapping("/list")
-	public ResponseEntity<?> list(@ModelAttribute ListRequest listRequest){
+    // 이벤트 목록 조회
+    @GetMapping("/list")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
+    public ResponseEntity<?> list(@ModelAttribute ListRequest listRequest) {
 
-		ListResponse<EventListResponseDTO> list = firstComeEventService.list(listRequest);
-		CommonResponse<ListResponse<EventListResponseDTO>> response = CommonResponse.success(list);
- 		return new ResponseEntity<>(response, HttpStatus.OK);
-	}
+        ListResponse<EventListResponseDTO> list = firstComeEventService.list(listRequest);
+        CommonResponse<ListResponse<EventListResponseDTO>> response = CommonResponse.success(list);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
-	// 이벤트 생성
-	@PostMapping()
-	public ResponseEntity<?> registerEvent(@AuthenticationPrincipal UserDetails userDetails, @RequestBody EventRegisterRequestDTO eventRegisterRequestDTO){
+    // 이벤트 생성
+    @PostMapping()
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
+    public ResponseEntity<?> registerEvent(@AuthenticationPrincipal AdminDetails adminDetails, @RequestBody EventRegisterRequestDTO eventRegisterRequestDTO) {
 
-		firstComeEventService.registerEvent(eventRegisterRequestDTO, userDetails.getUsername());
+        firstComeEventService.registerEvent(eventRegisterRequestDTO, adminDetails.getUsername());
 
-		return new ResponseEntity<>(HttpStatus.CREATED);
-	}
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 
-	// 이벤트 삭제
-	@DeleteMapping()
-	public ResponseEntity<?> deleteEvent(@RequestParam Long eventId){
+    // 이벤트 삭제
+    @DeleteMapping()
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
+    public ResponseEntity<?> deleteEvent(@RequestParam Long eventId) {
 
-		firstComeEventService.deleteEvent(eventId);
+        firstComeEventService.deleteEvent(eventId);
 
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-	}
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 
 }

@@ -20,7 +20,7 @@ public class RankingController {
 
     private final RankingService rankingService;
 
-    @PreAuthorize("hasRole('OPERATION_MANAGER')")
+    @PreAuthorize("hasAnyRole('OPERATION_MANAGER', 'SUPER_ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserRankingResponse>> getTopRankings(@AuthenticationPrincipal AdminDetails adminDetails) {
         List<UserRankingResponse> rankings = rankingService.getRankingSnapshot();
