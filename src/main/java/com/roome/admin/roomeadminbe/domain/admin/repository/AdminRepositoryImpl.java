@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.roome.admin.roomeadminbe.domain.admin.entity.QAdmin.admin;
 import static org.springframework.util.ObjectUtils.isEmpty;
@@ -25,6 +26,14 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @RequiredArgsConstructor
 public class AdminRepositoryImpl implements AdminRepositoryCustom {
 
+    private static final Map<String, String> SORT_COLUMN_MAP = Map.of(
+            "id", "adminId",
+            "name", "adminName",
+            "email", "adminEmail",
+            "role", "adminRole",
+            "lastLogin", "lastLoginAt",
+            "createdAt", "createdAt"
+    );
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
@@ -49,9 +58,11 @@ public class AdminRepositoryImpl implements AdminRepositoryCustom {
         Long count = jpaQueryFactory
                 .select(admin.count())
                 .from(admin)
+                .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
+                .where(adminRoleEq(adminListRequest.getRole()))
                 .fetchOne();
 
-        return new PageImpl<>(list, pageable, count);
+        return new PageImpl<>(list, pageable, count == null ? 0 : count);
     }
 
     private BooleanExpression adminRoleEq(AdminRole adminRole) {
