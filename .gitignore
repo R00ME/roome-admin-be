@@ -52,4 +52,4 @@ out/
 Dockerfile
 
 ### Ga json ###
-ga/*.json
+ga/*.jsonroome-be-ga-*.json
