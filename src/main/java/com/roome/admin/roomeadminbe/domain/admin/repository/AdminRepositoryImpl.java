@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Map;
@@ -37,16 +38,19 @@ public class AdminRepositoryImpl implements AdminRepositoryCustom {
 
     @Override
     public Page<AdminResponse> findAll(AdminListRequest adminListRequest, Pageable pageable) {
+        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(pageable);
+
         List<AdminResponse> list = jpaQueryFactory
                 .select(Projections.constructor(AdminResponse.class,
                         admin.adminId,
                         admin.adminName,
                         admin.adminEmail,
-                        admin.adminRole))
+                        admin.adminRole,
+                        admin.createdAt))
                 .from(admin)
                 .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
                 .where(adminRoleEq(adminListRequest.getRole()))
-                .orderBy(getOrderSpecifiers(pageable))
+                .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -65,20 +69,20 @@ public class AdminRepositoryImpl implements AdminRepositoryCustom {
         return isEmpty(adminRole) ? null : admin.adminRole.eq(adminRole);
     }
 
-    private OrderSpecifier<?>[] getOrderSpecifiers(Pageable pageable) {
+    private OrderSpecifier<?> getOrderSpecifier(Pageable pageable) {
         if (pageable.getSort().isEmpty()) {
-            return new OrderSpecifier[]{admin.createdAt.desc()};
+            return admin.createdAt.desc(); // 기본값
         }
 
-        return pageable.getSort().stream()
-                .map(order -> {
-                    String mapped = SORT_COLUMN_MAP.getOrDefault(order.getProperty(), "createdAt");
-                    PathBuilder<?> entityPath = new PathBuilder<>(Admin.class, "admin");
-                    return new OrderSpecifier(
-                            order.isAscending() ? Order.ASC : Order.DESC,
-                            entityPath.get(mapped)
-                    );
-                })
-                .toArray(OrderSpecifier[]::new);
+        Sort.Order sortOrder = pageable.getSort().iterator().next();
+        Order direction = sortOrder.isAscending() ? Order.ASC : Order.DESC;
+        PathBuilder<?> entityPath = new PathBuilder<>(Admin.class, "admin");
+
+        return switch (sortOrder.getProperty()) {
+            case "adminName" -> new OrderSpecifier<>(direction, admin.adminName);
+            case "createdAt" -> // 가입순
+                    new OrderSpecifier<>(direction, admin.createdAt);
+            default -> new OrderSpecifier<>(Order.DESC, admin.createdAt);
+        };
     }
 }
