@@ -26,14 +26,6 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @RequiredArgsConstructor
 public class AdminRepositoryImpl implements AdminRepositoryCustom {
 
-    private static final Map<String, String> SORT_COLUMN_MAP = Map.of(
-            "id", "adminId",
-            "name", "adminName",
-            "email", "adminEmail",
-            "role", "adminRole",
-            "lastLogin", "lastLoginAt",
-            "createdAt", "createdAt"
-    );
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
