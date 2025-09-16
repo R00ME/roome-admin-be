@@ -12,39 +12,6 @@ import java.util.List;
 
 public interface AdminNotificationRepository extends JpaRepository<AdminNotification, Long> {
 
-    interface NotificationRow {
-        Long getNotificationId();
-        String getNotificationTitle();
-        String getNotificationContent();
-        String getCategory();
-        Boolean getIsUrgent();
-        Boolean getIsRead();
-        java.sql.Timestamp getCreatedAt();       // 부모 created_at
-        java.sql.Timestamp getModifiedAt();      // 부모 modified_at
-        java.sql.Timestamp getAdminModifiedAt(); // 조인 modified_at
-        java.sql.Timestamp getLastActivityAt();  // 정렬용(계산값)
-    }
-
-    @Query(value = """
-        SELECT
-          n.notification_id               AS notificationId,
-          n.notification_title            AS notificationTitle,
-          n.notification_content          AS notificationContent,
-          n.category                      AS category,
-          n.is_urgent                     AS isUrgent,
-          an.is_read                      AS isRead,
-          n.created_at                    AS createdAt,
-          n.modified_at                   AS modifiedAt,
-          an.modified_at                  AS adminModifiedAt,
-          GREATEST(n.modified_at, an.modified_at) AS lastActivityAt
-        FROM bo_notifications n
-        JOIN admin_notification an
-          ON an.notification_id = n.notification_id
-        WHERE an.admin_id = :adminId
-        ORDER BY lastActivityAt DESC, n.notification_id DESC
-        """, nativeQuery = true)
-    List<NotificationRow> findForAdminOrderByLastActivity(@Param("adminId") Long adminId);
-
     // 1) 읽음 처리 (업데이트 쿼리)
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
