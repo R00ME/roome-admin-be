@@ -261,10 +261,10 @@ public class NotificationService {
 
     // 전체 읽음 처리
     @Transactional
-    public String markAllAsReadByEmail(String adminEmail) {
-        Admin me = adminRepository.findByAdminEmail(adminEmail)
+    public String markAllAsReadByEmail(String Email) {
+        Admin me = adminRepository.findByAdminEmail(Email)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 관리자입니다."));
-        notificationRepository.markAllAsReadByAdminId(me.getAdminId());
+        adminNotificationRepository.markAllAsReadByAdminEmail(Email);
         return "전체 알림이 읽음 처리되었습니다.";
     }
 

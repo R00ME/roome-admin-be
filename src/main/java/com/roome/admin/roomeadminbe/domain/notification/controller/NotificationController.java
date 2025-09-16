@@ -89,7 +89,9 @@ public class NotificationController {
     public ResponseEntity<Map<String, String>> markAllAsRead(
             @AuthenticationPrincipal AdminDetails adminDetails
     ) {
-        if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
+        if (adminDetails == null){
+            throw new RuntimeException("전체 알림이 읽음 처리 되지 않았습니다.");
+        }
         String email = adminDetails.getUsername();
 
         notificationService.markAllAsReadByEmail(email);

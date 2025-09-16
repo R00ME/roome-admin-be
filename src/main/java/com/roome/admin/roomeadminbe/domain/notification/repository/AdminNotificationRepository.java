@@ -27,7 +27,7 @@ public interface AdminNotificationRepository extends JpaRepository<AdminNotifica
     List<AdminNotification> findByAdmin_AdminIdOrderByNotification_CreatedAtDescNotification_NotificationIdDesc(Long adminId);
 
 
-    // [B] 전체 읽음 처리(내 것 전부)
+    // 전체 읽음 처리(내 것 전부)
     @Modifying
     @Transactional
     @Query("""
@@ -38,7 +38,7 @@ public interface AdminNotificationRepository extends JpaRepository<AdminNotifica
     """)
     int markAllRead(@Param("adminId") Long adminId);
 
-    // [C] 내 알림(Notification) 목록 (createdAt desc, id desc)
+    // 내 알림(Notification) 목록 (createdAt desc, id desc)
     @Query("""
         select n
           from AdminNotification an
@@ -47,6 +47,14 @@ public interface AdminNotificationRepository extends JpaRepository<AdminNotifica
          order by n.createdAt desc, n.notificationId desc
     """)
 
-
     List<Notification> findNotificationsByAdminIdOrderByCreatedAtDesc(@Param("adminId") Long adminId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+    update AdminNotification an
+       set an.isRead = true
+     where an.admin.adminEmail = :email
+       and (an.isRead = false or an.isRead is null)
+""")
+    int markAllAsReadByAdminEmail(@Param("email") String email);
 }
