@@ -37,8 +37,10 @@ public class Notification extends Timestamped {
     @Column(name = "category", nullable = false)
     private NotificationCategory category;
 
-//    //admin 참조하도록 설정
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "admin_id", nullable = false)
-//    private Admin admin;
+    @PrePersist //admin_notification에서 생성시간 동일하게
+    void onCreate(){
+        if (createdAt == null){
+            createdAt = LocalDateTime.now();
+        }
+    }
 }

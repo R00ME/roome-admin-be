@@ -1,0 +1,6 @@
+{
+  "notificationTitle": "로컬 테스트",
+  "notificationContent": "SSE 수신 확인",
+  "category": "ETC",
+  "urgent": false
+}

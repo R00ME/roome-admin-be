@@ -20,35 +20,29 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 import java.util.Map;
 
-
 @RestController
 @RequestMapping("/api/admin/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
-    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService notificationService;
-    private final AdminRepository adminRepository;
+    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
     private final SseService sseService;
 
 
     //알림 생성(작성자 본인에게만 생성 + 실시간 푸시)
     @PostMapping
     public ResponseEntity<NotificationResponseDto> createNotification(
-            @AuthenticationPrincipal AdminDetails adminDetails, @RequestBody NotificationRequestDto requestDto) {
-
-        if (adminDetails == null) throw new RuntimeException("인증 정보가 없습니다.");
-
+            @AuthenticationPrincipal AdminDetails adminDetails,
+            @RequestBody NotificationRequestDto requestDto
+    ){
+        if(adminDetails == null) throw new RuntimeException("인증 정보가 없습니다.");
         String email = adminDetails.getUsername();
-
         NotificationResponseDto created = notificationService.createForMe(email, requestDto);
         return ResponseEntity.status(201).body(created);
 
     }
 
-
-    /**
-     * 2) 전체 조회(관리용)
-     */
+    /** 2) 전체 조회(관리용) */
     @GetMapping
     public ResponseEntity<List<NotificationResponseDto>> getAllNotifications(
             @AuthenticationPrincipal AdminDetails adminDetails
@@ -56,19 +50,15 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getAllNotifications());
     }
 
-    /**
-     * 3) 특정 관리자 알림 조회
-     */
+    /** 3) 특정 관리자 알림 조회 */
     @GetMapping("/{adminId}")
     public ResponseEntity<List<NotificationResponseDto>> getNotificationsByAdminId(
             @AuthenticationPrincipal AdminDetails adminDetails,
-            @PathVariable Long adminId) {
+            @PathVariable Long adminId ){
         return ResponseEntity.ok(notificationService.getNotificationsByAdminId(adminId));
     }
 
-    /**
-     * 4) 내 알림함 조회
-     */
+    /** * 4) 내 알림함 조회 */
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getMyNotifications(
             @AuthenticationPrincipal AdminDetails adminDetails
@@ -83,9 +73,7 @@ public class NotificationController {
     }
 
 
-    /**
-     * 5) SSE 구독: 본인 채널만 구독 가능
-     */
+    /** * 5) SSE 구독: 본인 채널만 구독 가능 */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal AdminDetails admin) {
         if (admin == null || admin.getAdminId() == null) {
@@ -104,9 +92,9 @@ public class NotificationController {
         if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
         String email = adminDetails.getUsername();
 
-        String message = notificationService.markAllAsReadByEmail(email);
+        notificationService.markAllAsRead(email);
 
-        return ResponseEntity.ok(Map.of("message", message));
+        return ResponseEntity.ok(Map.of("message", "전체 알림이 읽음 처리되었습니다."));
     }
 
     //단일 읽음 조회
@@ -119,20 +107,22 @@ public class NotificationController {
             throw new RuntimeException("인증 정보가 없습니다.");
         }
         String email = adminDetails.getUsername();
-        notificationService.markAsRead(notificationId, email);
-        return ResponseEntity.ok(Map.of("message", "알림이 읽음 처리되었습니다."));
-    }
+        notificationService.markOneAsRead(email,notificationId);
+        return ResponseEntity.ok(Map.of("message","알림이 읽음 처리되었습니다."));
+   }
 
-    //안읽음조회
-    @GetMapping("/unread")
-    public Map<String, Object> getUnread(@AuthenticationPrincipal AdminDetails adminDetails) {
+   //안읽음조회
+   @GetMapping("/unread")
+    public Map<String, Object> getUnread(@AuthenticationPrincipal AdminDetails adminDetails){
+        if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
         String email = adminDetails.getUsername();
         return notificationService.getUnreadGrouped(email);
     }
 
     //긴급 조회
     @GetMapping("/urgent")
-    public Map<String, Object> getUrgent(@AuthenticationPrincipal AdminDetails adminDetails) {
+    public Map<String, Object> getUrgent(@AuthenticationPrincipal AdminDetails adminDetails){
+        if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
         String email = adminDetails.getUsername();
         return notificationService.getUrgentGrouped(email);
     }
