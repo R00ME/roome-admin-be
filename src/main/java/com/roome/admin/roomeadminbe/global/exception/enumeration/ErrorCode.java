@@ -11,7 +11,8 @@ public enum ErrorCode {
     INVALID_JSON("json 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST),
     NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     DATABASE_QUERY_FAILED("유효하지 않은 쿼리입니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    ;
+    INVALID_REQUEST("잘못된 요청입니다.", HttpStatus.BAD_REQUEST),
+    DATABASE_ERROR("DB 접근 오류", HttpStatus.BAD_REQUEST);
 
     private final String message;
     private final HttpStatus status;

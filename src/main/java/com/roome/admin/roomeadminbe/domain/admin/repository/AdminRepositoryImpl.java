@@ -11,7 +11,10 @@ import com.roome.admin.roomeadminbe.domain.admin.dto.response.AdminResponse;
 import com.roome.admin.roomeadminbe.domain.admin.entity.ActivationStatus;
 import com.roome.admin.roomeadminbe.domain.admin.entity.Admin;
 import com.roome.admin.roomeadminbe.domain.admin.entity.AdminRole;
+import com.roome.admin.roomeadminbe.global.exception.BusinessException;
+import com.roome.admin.roomeadminbe.global.exception.enumeration.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -30,31 +33,40 @@ public class AdminRepositoryImpl implements AdminRepositoryCustom {
 
     @Override
     public Page<AdminResponse> findAll(AdminListRequest adminListRequest, Pageable pageable) {
-        OrderSpecifier<?> orderSpecifier = getOrderSpecifier(pageable);
+        try {
+            OrderSpecifier<?> orderSpecifier = getOrderSpecifier(pageable);
 
-        List<AdminResponse> list = jpaQueryFactory
-                .select(Projections.constructor(AdminResponse.class,
-                        admin.adminId,
-                        admin.adminName,
-                        admin.adminEmail,
-                        admin.adminRole,
-                        admin.createdAt))
-                .from(admin)
-                .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
-                .where(adminRoleEq(adminListRequest.getRole()))
-                .orderBy(orderSpecifier)
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+            List<AdminResponse> list = jpaQueryFactory
+                    .select(Projections.constructor(AdminResponse.class,
+                            admin.adminId,
+                            admin.adminName,
+                            admin.adminEmail,
+                            admin.adminRole,
+                            admin.createdAt))
+                    .from(admin)
+                    .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
+                    .where(adminRoleEq(adminListRequest.getRole()))
+                    .orderBy(orderSpecifier)
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize())
+                    .fetch();
 
-        Long count = jpaQueryFactory
-                .select(admin.count())
-                .from(admin)
-                .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
-                .where(adminRoleEq(adminListRequest.getRole()))
-                .fetchOne();
+            Long count = jpaQueryFactory
+                    .select(admin.count())
+                    .from(admin)
+                    .where(admin.activationStatus.eq(ActivationStatus.ACTIVE))
+                    .where(adminRoleEq(adminListRequest.getRole()))
+                    .fetchOne();
 
-        return new PageImpl<>(list, pageable, count == null ? 0 : count);
+            return new PageImpl<>(list, pageable, count == null ? 0 : count);
+
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        } catch (DataAccessException e) {
+            throw new BusinessException(ErrorCode.DATABASE_ERROR);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.UNHANDLED_EXCEPTION);
+        }
     }
 
     private BooleanExpression adminRoleEq(AdminRole adminRole) {

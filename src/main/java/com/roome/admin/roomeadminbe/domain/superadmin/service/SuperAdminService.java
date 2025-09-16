@@ -62,11 +62,19 @@ public class SuperAdminService {
     }
 
     public AdminListResponse getAdminList(AdminListRequest adminListRequest) {
-        Pageable pageable = adminListRequest.toPageable();
+        try {
+            Pageable pageable = adminListRequest.toPageable();
 
-        Page<AdminResponse> page = adminRepository.findAll(adminListRequest, pageable);
+            Page<AdminResponse> page = adminRepository.findAll(adminListRequest, pageable);
 
-        return AdminListResponse.from(page);
+            return AdminListResponse.from(page);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 요청 파라미터
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        } catch (Exception e) {
+            // 그 외 예기치 못한 오류
+            throw new BusinessException(ErrorCode.UNHANDLED_EXCEPTION);
+        }
     }
 
     public void deleteAdminRole(Long adminId) {
