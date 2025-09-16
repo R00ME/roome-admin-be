@@ -17,5 +17,7 @@ public class NotificationRequestDto {
     private String notificationTitle; // 상단제목
     private String notificationContent; // 본문 내용
     private NotificationCategory category; //알림 분류 enum
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isUrgent")
     private boolean isUrgent; //긴급 알림 유무 true:중요, false:일반
 }

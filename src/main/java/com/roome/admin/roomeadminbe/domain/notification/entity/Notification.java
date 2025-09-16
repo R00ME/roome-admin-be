@@ -1,10 +1,9 @@
 package com.roome.admin.roomeadminbe.domain.notification.entity;
 
+import com.roome.admin.roomeadminbe.domain.common.entity.Timestamped;
 import com.roome.admin.roomeadminbe.domain.notification.type.NotificationCategory;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "bo_notifications")
-public class Notification {
+public class Notification extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,11 +24,11 @@ public class Notification {
     @Column(name = "notification_content", nullable = false)
     private String notificationContent;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+//    @Column(name = "created_at", nullable = false)
+//    private LocalDateTime createdAt;
 
-    @Column(name = "is_read", nullable = false)
-    private boolean isRead;
+//    @Column(name = "is_read", nullable = false)
+//    private boolean isRead;
 
     @Column(name = "is_urgent", nullable = false)
     private boolean isUrgent;
