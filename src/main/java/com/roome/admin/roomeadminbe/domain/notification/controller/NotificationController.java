@@ -92,7 +92,7 @@ public class NotificationController {
         if (adminDetails == null) throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
         String email = adminDetails.getUsername();
 
-        notificationService.markAllAsRead(email);
+        notificationService.markAllAsReadByEmail(email);
 
         return ResponseEntity.ok(Map.of("message", "전체 알림이 읽음 처리되었습니다."));
     }
@@ -107,7 +107,7 @@ public class NotificationController {
             throw new RuntimeException("인증 정보가 없습니다.");
         }
         String email = adminDetails.getUsername();
-        notificationService.markOneAsRead(email,notificationId);
+        notificationService.markAsRead(notificationId, email);
         return ResponseEntity.ok(Map.of("message","알림이 읽음 처리되었습니다."));
    }
 

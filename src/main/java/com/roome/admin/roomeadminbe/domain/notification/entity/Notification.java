@@ -5,6 +5,8 @@ import com.roome.admin.roomeadminbe.domain.notification.type.NotificationCategor
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,10 +39,10 @@ public class Notification extends Timestamped {
     @Column(name = "category", nullable = false)
     private NotificationCategory category;
 
-    @PrePersist //admin_notification에서 생성시간 동일하게
-    void onCreate(){
-        if (createdAt == null){
-            createdAt = LocalDateTime.now();
-        }
+    @PrePersist
+    protected void onCreate() {
+        // createdAt은 Timestamped에서 자동 세팅
+        // modifiedAt은 비워두거나 null 유지
     }
+
 }
