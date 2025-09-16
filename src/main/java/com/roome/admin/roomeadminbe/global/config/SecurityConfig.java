@@ -78,6 +78,7 @@ public class SecurityConfig {
                                 .requestMatchers("/favicon.ico").permitAll()
                                 .requestMatchers("/api/alarms").permitAll()
                                 .requestMatchers("/api/admin/auth/password/reset").permitAll()
+                                .requestMatchers("/api/admin/notifications/subscribe").permitAll()
                                 .requestMatchers("/api/analytics/**").permitAll()
                                 .anyRequest().authenticated()
                 );
