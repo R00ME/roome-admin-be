@@ -1,0 +1,69 @@
+package com.roome.admin.roomeadminbe.domain.event.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "first_come_event")
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class FirstComeEvent {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 255)
+    private String eventName; // 이벤트 이름
+
+    @Column(nullable = false)
+    private int rewardPoints; // 보상 포인트
+
+    @Column(nullable = false)
+    private int maxParticipants; // 최대 참여 인원
+
+    @Column(nullable = false)
+    private LocalDateTime eventTime; // 이벤트 시작 시간
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EventStatus status;
+
+    // 이벤트 내용
+    @Column(name = "event_content", nullable = false, length = 500)
+    private String eventContent;
+
+    // 이벤트 종료 시간
+    @Column
+    private LocalDateTime eventEndTime;
+
+    // 이벤트 작성자
+    @Column(name = "event_writer")
+    private String eventWriter;
+
+    // 이벤트 알림 대상
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_receiver_target")
+    private EventReceiverTarget eventReceiverTarget;
+
+    // 이벤트 알림 발송 시간
+    @Column(name = "event_upload_time")
+    private LocalDateTime eventUploadTime;
+
+//	@OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+//	private List<EventParticipation> participants = new ArrayList<>();
+
+
+    public boolean isEventOpen() {
+        return LocalDateTime.now().isAfter(eventTime);
+    }
+
+    public void endEvent() {
+        this.status = EventStatus.ENDED;
+    }
+}
+

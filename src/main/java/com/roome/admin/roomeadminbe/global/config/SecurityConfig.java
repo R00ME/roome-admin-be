@@ -1,0 +1,106 @@
+package com.roome.admin.roomeadminbe.global.config;
+
+import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAccessDeniedHandler;
+import com.roome.admin.roomeadminbe.global.security.jwt.handler.JwtAuthenticationEntryPoint;
+import com.roome.admin.roomeadminbe.global.security.jwt.provider.TokenProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
+@Configuration
+@EnableMethodSecurity(prePostEnabled = true)
+@EnableWebSecurity
+public class SecurityConfig {
+
+    private final TokenProvider tokenProvider;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    @Qualifier("BO_blacklistRedisTemplate")
+    private final RedisTemplate<String, Long> blacklistRedisTemplate;
+
+    public SecurityConfig(
+            TokenProvider tokenProvider,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            JwtAccessDeniedHandler jwtAccessDeniedHandler,
+            @Qualifier("BO_blacklistRedisTemplate") RedisTemplate<String, Long> blacklistRedisTemplate
+    ) {
+        this.tokenProvider = tokenProvider;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
+        this.blacklistRedisTemplate = blacklistRedisTemplate;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        JwtSecurityConfig jwtSecurityConfig = new JwtSecurityConfig(tokenProvider, blacklistRedisTemplate);
+
+        httpSecurity
+                .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling
+                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                .accessDeniedHandler(jwtAccessDeniedHandler)
+                )
+                .headers(headers ->
+                        headers
+                                .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
+                .sessionManagement(sessionManagement ->
+                        sessionManagement
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(authorizeRequests ->
+                        authorizeRequests
+                                .requestMatchers("/api/admin/auth/login").permitAll()
+                                .requestMatchers("/api/admin/refresh").permitAll()
+                                .requestMatchers("/favicon.ico").permitAll()
+                                .requestMatchers("/api/alarms").permitAll()
+                                .requestMatchers("/api/admin/auth/password/reset").permitAll()
+                                .requestMatchers("/api/admin/notifications/subscribe").permitAll()
+                                .requestMatchers("/api/analytics/**").permitAll()
+                                .anyRequest().authenticated()
+                );
+
+        jwtSecurityConfig.configure(httpSecurity);
+
+        return httpSecurity.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173", "http://localhost:5174", "http://localhost:5175"));
+        config.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        config.setExposedHeaders(List.of("Authorization"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+}

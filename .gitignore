@@ -38,3 +38,18 @@ out/
 
 ### application.yml ###
 **/resources/application.yml
+**/resources/application-dev.yml
+**/resources/application-local.yml
+**/resources/application-prod.yml
+
+### .env ###
+**/.env
+
+### generated ###
+**/generated
+
+### Dockrefile ###
+Dockerfile
+
+### Ga json ###
+ga/roome-be-ga-*.json
